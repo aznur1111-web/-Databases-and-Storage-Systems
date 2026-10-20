@@ -1,0 +1,2044 @@
+<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><meta name="description" content="Az Databases &amp; Storage Systems Lab, a single-file course on database internals and storage engines"><title>Az Databases &amp; Storage Systems Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#111722;--panel:#192230;--panel2:#202b3a;--panel3:#141c27;--line:#2c394b;--line2:#3b4b61;--text:#e8eef7;--muted:#a7b4c7;--subtle:#8190a5;--accent:#8ab4f8;--strong:#c9ddff;--good:#9ed7bd;--warn:#edc477;--bad:#ff929e;--shadow:none;--radius:13px}
+:root[data-theme=light]{color-scheme:light;--bg:#f4f6f8;--panel:#fff;--panel2:#f7f9fb;--panel3:#f0f4f8;--line:#dce2e9;--line2:#cbd4df;--text:#17212d;--muted:#596a7e;--subtle:#718197;--accent:#315fa2;--strong:#244a82;--good:#176b4c;--warn:#8c5c04;--bad:#b33143;--shadow:0 8px 24px rgba(20,35,50,.05)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}a{color:var(--accent);text-decoration:none}.muted{color:var(--muted)}.mono,code,pre,textarea{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.topbar{height:64px;position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;padding:0 22px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text)}.brand-mark{width:34px;height:34px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2);display:grid;place-items:center;color:var(--strong);font-weight:850;font-size:14px}.brand strong{display:block;font-size:14px;line-height:1.2}.brand small{display:block;font-size:10px;letter-spacing:.14em;color:var(--muted);margin-top:2px}
+.top-meta{flex:1;color:var(--subtle);font-size:12px;letter-spacing:.02em}
+.top-actions{display:flex;align-items:center;gap:7px}.top-actions label{font-size:11px;color:var(--muted)}
+select,.btn{border:1px solid var(--line2);background:var(--panel3);color:var(--text);border-radius:8px;padding:8px 11px;font-size:12px}.btn{font-weight:600;white-space:nowrap}.btn:hover{border-color:var(--accent);color:var(--strong)}.btn.primary{background:var(--accent);color:#10203a;border-color:var(--accent)}:root[data-theme=light] .btn.primary{color:white}
+.layout{display:grid;grid-template-columns:264px minmax(420px,1fr);max-width:1500px;margin:auto;min-height:calc(100vh - 64px)}
+.sidebar{position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto;border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column}
+.side-title{display:flex;justify-content:space-between;color:var(--subtle);font-size:10px;letter-spacing:.14em;font-weight:800;padding:0 4px 12px}
+.pill,.tag{border:1px solid var(--line2);border-radius:6px;padding:3px 7px;font-size:10px;color:var(--muted);white-space:nowrap}
+.search{display:flex;gap:7px;align-items:center;border:1px solid var(--line);border-radius:9px;background:var(--panel3);height:39px;padding:0 10px;margin-bottom:10px}
+.search input{min-width:0;width:100%;background:transparent;border:0;outline:0;color:var(--text);font-size:12px}
+.search kbd{border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--subtle);font-size:10px}
+.filter{display:block;color:var(--subtle);font-size:11px;margin-bottom:12px}.filter select{display:block;width:100%;max-width:none;margin-top:5px;padding:7px}
+.tree{display:flex;flex-direction:column;gap:12px}
+.group-label{display:flex;justify-content:space-between;color:var(--subtle);font-size:10px;font-weight:800;letter-spacing:.08em;padding:4px 5px}
+.link{width:100%;text-align:left;display:flex;gap:8px;align-items:center;background:transparent;border:1px solid transparent;color:var(--muted);padding:7px 8px;border-radius:8px;min-height:34px}
+.link .num{font:10px ui-monospace,monospace;color:var(--subtle);width:19px;flex:none}
+.link .name{font-size:12px;flex:1}.link .done{color:var(--good)}
+.link:hover{background:var(--panel2);color:var(--text)}
+.link.active{background:var(--panel2);border-color:var(--line2);color:var(--strong)}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px}
+.progress-row{display:flex;justify-content:space-between;color:var(--subtle);font-size:11px;margin-bottom:7px}
+.progress{height:5px;background:var(--panel2);border-radius:9px;overflow:hidden}.progress>div{height:100%;width:0;background:var(--accent);transition:width .25s}
+.side-actions{display:flex;gap:6px;margin-top:12px}.side-actions .btn{flex:1;padding:7px;font-size:11px}
+main{max-width:920px;width:100%;min-width:0;margin:auto;padding:28px 30px 40px}
+.breadcrumb{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--subtle);margin-bottom:16px}
+.header{padding:2px 2px 22px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:800;color:var(--accent);margin-bottom:9px}
+.header h1{font-size:clamp(27px,3vw,36px);line-height:1.12;letter-spacing:-.035em;margin:0 0 10px;font-weight:700}
+.header p{font-size:14.5px;color:var(--muted);margin:0 0 14px;max-width:740px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag.good{color:var(--good)}.tag.warn{color:var(--warn)}
+.header-actions{display:flex;gap:7px;margin-top:16px;flex-wrap:wrap}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel-head{padding:18px 20px 0}.panel-head h2{font-size:15px;margin:0 0 4px;letter-spacing:-.01em;font-weight:650}.panel-head p{font-size:12.5px;color:var(--muted);margin:0}
+.body{padding:16px 20px 20px}
+.idea{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:20px}
+.idea p{font-size:13.5px;color:var(--muted);margin:0 0 13px}
+.mental{background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:13px}
+.mental small{color:var(--subtle);font-size:10px;letter-spacing:.11em;text-transform:uppercase}
+.mental strong{display:block;margin:6px 0;font-size:13px;color:var(--strong)}
+.mental p{font-size:12px;color:var(--muted);margin:0}
+.takeaway{padding:11px 13px;border:1px solid var(--line2);background:var(--panel3);border-radius:8px;color:var(--strong);font-size:12.5px;line-height:1.6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mini{background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:13px}
+.mini h3{font-size:12px;margin:0 0 7px;font-weight:650}
+.mini p{font-size:12.5px;color:var(--muted);margin:0;line-height:1.6}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.steps li{counter-increment:s;display:flex;gap:10px;color:var(--muted);font-size:12.5px;line-height:1.55}
+.steps li:before{content:counter(s);width:23px;height:23px;flex:none;display:grid;place-items:center;border:1px solid var(--line2);background:var(--panel3);border-radius:6px;color:var(--accent);font:11px ui-monospace,monospace}
+.pseudo{white-space:pre-wrap;overflow:auto;background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:14px;font:12px/1.75 ui-monospace,monospace;color:var(--strong);margin:0}
+.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border-bottom:1px solid var(--line);text-align:left;padding:9px 10px;vertical-align:top}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle);font-weight:700}
+td{color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{padding:12px;background:var(--panel3);border:1px solid var(--line);border-radius:9px}
+.tile span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle)}
+.tile strong{display:block;color:var(--strong);font:700 14px ui-monospace,monospace;margin-top:6px}
+.tile small{font-size:10.5px;color:var(--muted);display:block;margin-top:2px}
+.notice{padding:12px 13px;background:var(--panel3);border:1px solid color-mix(in srgb,var(--warn) 35%,var(--line));border-radius:9px;font-size:12.5px;color:var(--muted);line-height:1.65}
+.notice strong{color:var(--warn)}
+.notice.info{border-color:var(--line2)}.notice.info strong{color:var(--accent)}
+.lab-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lab-top label{font-size:11.5px;color:var(--muted)}
+.lab-input{width:100%;min-height:80px;resize:vertical;background:var(--panel3);border:1px solid var(--line2);border-radius:9px;padding:11px;color:var(--text);font:12px/1.65 ui-monospace,monospace;margin:11px 0}
+.lab-output{padding:13px;background:var(--panel3);border:1px solid var(--line);border-radius:9px;min-height:70px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--strong);font:12px/1.75 ui-monospace,monospace;overflow-x:auto}
+.lab-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.label{font-size:10px;color:var(--subtle);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
+.code-head{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:11px 13px;background:var(--panel3);border-bottom:1px solid var(--line)}
+.code-editor{display:block;width:100%;min-height:220px;resize:vertical;border:0;border-radius:0;background:var(--panel3);color:var(--text);padding:15px;font:12px/1.7 ui-monospace,monospace;outline:0}
+.code-foot{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 13px;color:var(--subtle);font-size:10px;border-top:1px solid var(--line)}
+.practice{border:1px solid var(--line);background:var(--panel3);border-radius:9px;padding:13px}
+.practice summary{cursor:pointer;font-size:12.5px;font-weight:600}
+.practice p{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.65}
+.references{display:flex;flex-direction:column;gap:8px}
+.references a{font-size:12.5px;overflow-wrap:anywhere}
+.home-hero{padding:30px;background:linear-gradient(150deg,var(--panel),var(--panel3));border:1px solid var(--line);border-radius:14px;margin-bottom:16px}
+.home-hero h1{font-size:clamp(30px,3.6vw,42px);line-height:1.1;letter-spacing:-.04em;margin:8px 0 14px;font-weight:700}
+.home-hero p{color:var(--muted);font-size:14px;max-width:720px;margin:0 0 18px;line-height:1.65}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.stat strong{display:block;font:700 22px ui-monospace,monospace;color:var(--strong)}
+.stat span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px}
+.chapter-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chapter-card{padding:14px;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text)}
+.chapter-card:hover{border-color:var(--accent)}
+.chapter-card .num{font-size:10px;color:var(--accent);letter-spacing:.09em;font-weight:800}
+.chapter-card strong{display:block;font-size:13px;margin:5px 0;font-weight:650}
+.chapter-card p{font-size:11.5px;color:var(--muted);margin:0;line-height:1.55}
+.toast{position:fixed;z-index:99;bottom:20px;left:50%;transform:translate(-50%,10px);opacity:0;pointer-events:none;background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:11px 15px;box-shadow:var(--shadow);font-size:12px;transition:opacity .14s,transform .14s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.footer{font-size:10.5px;color:var(--subtle);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:6px 2px 14px;align-items:center}
+.plot{width:100%;height:auto;display:block;background:var(--bg);border:1px solid var(--line);border-radius:8px;margin:6px 0}
+@media(max-width:1080px){.layout{grid-template-columns:240px minmax(360px,1fr)}main{padding:24px 22px 36px}}
+@media(max-width:840px){.topbar{height:auto;min-height:60px;flex-wrap:wrap;gap:10px;padding:10px 14px}.top-meta{display:none}.top-actions{margin-left:auto}.top-actions label{display:none}.layout{display:block}.sidebar{position:static;height:auto;max-height:none;border:0;border-bottom:1px solid var(--line);padding:14px}.tree{max-height:260px;overflow:auto}.side-foot{display:none}main{padding:20px 15px 32px}.idea{grid-template-columns:1fr}.mental{order:-1}.stats{grid-template-columns:1fr 1fr}.chapter-cards,.two,.lab-cols{grid-template-columns:1fr}}
+@media(max-width:520px){.brand small{display:none}.brand-mark{width:30px;height:30px}.brand strong{font-size:12px}.top-actions select{max-width:92px;padding:6px;font-size:10px}.top-actions .btn{padding:6px 8px;font-size:10px}.chapter-cards{grid-template-columns:1fr}.tiles{grid-template-columns:1fr}.home-hero{padding:20px}.home-hero h1{font-size:30px}.header h1{font-size:27px}.body,.panel-head{padding-left:15px;padding-right:15px}.footer{display:block}.footer span{display:block;margin-bottom:6px}}
+@media print{.topbar,.sidebar,.header-actions,.lab-top,.btn,.toast{display:none!important}.layout{display:block}main{padding:0;max-width:none}.panel,.home-hero{break-inside:avoid;box-shadow:none}body{background:#fff;color:#111}}
+</style></head><body>
+
+<header class="topbar">
+  <a class="brand" href="#home" id="homeLink"><span class="brand-mark">Az</span><span><strong>Az Databases &amp; Storage Systems Lab</strong><small>DATABASES · STORAGE ENGINES · TRANSACTIONS</small></span></a>
+  <div class="top-meta" id="catalogCount"></div>
+  <div class="top-actions">
+    <label for="themeSelect">Theme</label>
+    <select id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+    <button class="btn" id="printBtn">Print / PDF</button>
+    <button class="btn" id="exportBtn">Export</button>
+    <button class="btn" id="importBtn">Import</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" aria-label="Course navigation">
+    <div class="side-title"><span>COURSE CATALOG</span><span class="pill" id="lessonCount">0</span></div>
+    <div class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Search database and storage topics…" aria-label="Search lessons"><kbd>/</kbd></div>
+    <label class="filter">Chapter<select id="chapterFilter"><option value="all">All chapters</option></select></label>
+    <nav class="tree" id="courseTree" aria-label="Lessons"></nav>
+    <div class="side-foot">
+      <div class="progress-row"><span>COURSE PROGRESS</span><strong id="progressText">0 / 0</strong></div>
+      <div class="progress" id="progressBar"><div id="progressFill"></div></div>
+      <div class="side-actions"><button class="btn" data-page="home">Home</button><button class="btn" data-page="progress">Progress</button></div>
+    </div>
+  </aside>
+  <main id="mainView" tabindex="-1" aria-live="polite"></main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   Az Databases & Storage Systems Lab
+   ============================================================ */
+var CHAPTERS=[
+ {id:"foundations",title:"1 Database foundations",desc:"Records, pages, buffers, indexes, transactions, query execution plans.",ids:["db-foundations"]},
+ {id:"joins",title:"2 Basic and advanced joins",desc:"Nested-loop, index nested-loop, hash join, sort-merge join, adaptive joins.",ids:["db-joins"]},
+ {id:"planning",title:"3 Query planning",desc:"Relational algebra, Selinger DP, cardinality estimation, cost-based optimization, join ordering.",ids:["query-planning"]},
+ {id:"indexes",title:"4 Index structures",desc:"Hash indexes, B-trees, B+ trees, bitmap indexes, inverted indexes, learned indexes.",ids:["index-structures"]},
+ {id:"concurrency",title:"5 Transaction concurrency",desc:"Locks, two-phase locking, timestamp ordering, OCC, MVCC, SSI.",ids:["concurrency-control"]},
+ {id:"recovery",title:"6 Recovery and durability",desc:"Write-ahead logging, ARIES, checkpoints, redo/undo, crash recovery, replication logs.",ids:["recovery-durability"]},
+ {id:"engines",title:"7 Storage engines",desc:"Heap files, slotted pages, LSM trees, leveled and tiered compaction, copy-on-write B-trees.",ids:["storage-engines"]},
+ {id:"columnar",title:"8 Columnar and compressed storage",desc:"Dictionary encoding, bit packing, RLE, delta encoding, frame-of-reference, Parquet concepts.",ids:["columnar-storage"]},
+ {id:"partitioning",title:"9 Partitioning and fault tolerance",desc:"Range/hash partitioning, consistent hashing, replication, sharding, Reed-Solomon, RAID parity.",ids:["partitioning-fault"]},
+ {id:"distributed",title:"10 Distributed queries and analytics",desc:"Distributed joins, aggregation, approximate query processing, sketches, materialized views, query caching.",ids:["distributed-queries"]}
+];
+
+var D={
+ kind:"Concept",status:"Concept lesson",level:3,demo:"none",demoTitle:"Interactive teaching lab",inputKind:"text",refs:[],
+ input:"A schema, a workload, or an instance, plus the parameters of the algorithm.",
+ output:"A plan, a layout, or a set of metrics that rank the options.",
+ invariant:"A storage or query decision is only as good as its cost model. Optimizing the wrong metric gives the wrong plan.",
+ complexity:["Depends on the data volume and the I/O model","Depends on the layout and the access pattern","Measure on representative workloads"],
+ uses:"Use this as one layer inside a larger database or storage pipeline.",
+ strength:"Fits the problem when the workload and the cost model are stated correctly.",
+ limits:"Depends on the data distribution, the workload and the hardware.",
+ pitfall:"A layout that is optimal for one workload can be terrible for another. State the workload before choosing the layout.",
+ question:"What is the main idea of this lesson?",
+ trace:null
+};
+function mk(o){
+ var steps=o.steps||["Read the input.","Apply the method.","Produce the output.","Check the result."];
+ var base={};
+ for(var k in D)base[k]=D[k];
+ base.summary=o.summary||"";
+ base.mental=o.mental||o.title;
+ base.mentalText=o.mentalText||o.summary||"";
+ base.problem=o.problem||("How does "+o.title+" work and when is it the right choice?");
+ base.steps=steps;
+ base.trace=o.trace||steps.map(function(s,i){return ["Step "+(i+1),s,i===steps.length-1?"Verified":"Step done"]});
+ base.answer=o.answer||o.summary||"";
+ base.pseudo=o.pseudo||"";
+ base.sample=o.sample||"";
+ base.level=o.level||2;
+ for(var k2 in o)base[k2]=o[k2];
+ return base;
+}
+
+var RAW=[
+/* ===== 1 ===== */
+{id:"db-foundations",title:"Database foundations: records, pages, buffers and plans",level:2,kind:"Foundation",status:"Runnable teaching lab",
+ summary:"A database stores records inside fixed-size pages. A buffer pool caches pages in memory. An index maps keys to record locations. A transaction is a unit of work with ACID guarantees. A query plan is a tree of physical operators that executes the query.",
+ mental:"Records in pages, pages in a buffer pool, a plan tree on top",
+ mentalText:"The storage engine reads and writes pages. The buffer pool decides which pages stay in memory. The executor walks the plan tree, pulling tuples from each operator.",
+ problem:"How do you reason about database performance from the storage layer up to the query plan?",
+ steps:["Fix the record layout and the page size.","Decide which pages are cached and which are read from disk.","Choose an access path: sequential scan, index scan or index-only scan.","Build a plan tree of physical operators.","Estimate the cost in I/Os and CPU.","Execute and measure."],
+ pseudo:"Record layout:\n  fixed-length records:  record i at offset i * record_size\n  variable-length records:  slotted page with a slot directory\n\nPage:\n  fixed size, typically 4 KB or 8 KB\n  header: page id, LSN, free space pointers, slot count\n  slots: offsets to the records\n  free space: the gap between the slot directory and the records\n\nBuffer pool:\n  capacity of B frames\n  page table: page id -> frame\n  replacement policies: LRU, CLOCK, LRU-K, ARC\n  pin count: a pinned page cannot be evicted\n  dirty flag: a dirty page must be written back before eviction\n  hit ratio = hits / (hits + misses)\n  average access time = hit_ratio * memory_latency + (1 - hit_ratio) * disk_latency\n\nIndex:\n  maps a search key to a record id (page id, slot)\n  clustered index: the records are stored in index order\n  secondary index: the records are stored elsewhere\n  covering index: the index contains every column the query needs\n\nTransaction:\n  ACID: atomicity, consistency, isolation, durability\n  begin, read, write, commit, abort\n  the scheduler decides the order of conflicting operations\n\nQuery execution plan:\n  a tree of physical operators\n    SeqScan, IndexScan, IndexOnlyScan\n    NestedLoopJoin, HashJoin, MergeJoin\n    Sort, HashAggregate, GroupAggregate\n    Filter, Project, Limit\n  each operator has a cost and a cardinality estimate\n  the executor pulls tuples from the root (Volcano model)\n  or pushes batches between operators (vectorized model)\n\nCost model:\n  cost = page_reads * seq_page_cost\n       + random_page_reads * random_page_cost\n       + tuples_processed * cpu_tuple_cost\n       + ...\n  PostgreSQL defaults: seq_page_cost = 1.0, random_page_cost = 4.0\n\nExample plan:\n  HashJoin\n    SeqScan on orders\n    Hash\n      IndexScan on customers using pk_customers\n\nA plan is chosen by the optimizer from the statistics, the cost model",
+ invariant:"The optimizer picks the plan with the lowest estimated cost. A wrong cardinality estimate gives a wrong plan. The buffer pool decides whether the plan runs in memory or on disk.",
+ uses:"Every relational database, key-value store, document store and analytical engine.",
+ strength:"The layered model separates the storage, the buffer management, the indexing and the query execution. Each layer can be tuned independently.",
+ limits:"The cost model is a simplification. Statistics drift, hardware varies and correlations break the independence assumption.",
+ pitfall:"Assuming the optimizer always picks the best plan. A bad cardinality estimate (for example, a correlated predicate) can produce a nested-loop join over millions of rows instead of a hash join.",
+ question:"What is the difference between a clustered index and a secondary index?",
+ answer:"A clustered index stores the records in the order of the index key, so a range scan reads the records sequentially. A secondary index stores pointers to the records, which are stored elsewhere, so a range scan needs an extra fetch per matching record.",
+ demo:"db-foundations",demoTitle:"Page layout, buffer hit ratio and scan cost",sample:"4 100\nseq 1000000\nidx 200\nhit 0.9",refs:[
+  ["Ramakrishnan, Gehrke, Database Management Systems, 3rd ed., McGraw-Hill 2002","https://www.mheducation.com/highered/product/database-management-systems-ramakrishnan-gehrke/M9780072465631.html"],
+  ["Garcia-Molina, Ullman, Widom, Database Systems: The Complete Book, 2nd ed., Pearson 2008","https://www.pearson.com/en-us/subject-catalog/p/database-systems-the-complete-book/P200000003309"],
+  ["Hellerstein, Stonebraker, Hamilton, Architecture of a Database System, Foundations and Trends in Databases 2007","https://doi.org/10.1561/1900000002"],
+  ["Silberschatz, Korth, Sudarshan, Database System Concepts, 7th ed., McGraw-Hill 2019","https://www.db-book.com/"]],
+ complexity:["O(1) page access with a hash page table","O(log n) index lookup for a B+ tree","O(n) sequential scan","Buffer hit ratio depends on the workload"]},
+
+/* ===== 2 ===== */
+{id:"db-joins",title:"Basic and advanced joins: nested-loop, hash, sort-merge and adaptive",level:3,kind:"Joins",status:"Runnable teaching lab",
+ summary:"A join combines tuples from two relations on a predicate. Nested-loop join is simple and works for any predicate. Hash join is fast for equijoins on large inputs. Sort-merge join exploits sorted inputs. Adaptive joins switch strategy mid-flight.",
+ mental:"Two relations, a predicate, and a strategy for matching tuples",
+ mentalText:"The nested-loop join reads one relation and, for each tuple, scans the other. The hash join builds a hash table on the smaller input and probes it with the larger. Sort-merge join sorts both inputs and merges them.",
+ problem:"Given two relations and a join predicate, which join algorithm should the optimizer choose?",
+ steps:["Estimate the cardinality of each input.","Check whether the predicate is an equijoin.","Check whether either input fits in memory.","Choose the algorithm: nested-loop, index nested-loop, hash or sort-merge.","Estimate the I/O and CPU cost.","Execute and measure."],
+ pseudo:"Nested-loop join (R join S on theta):\n  for each tuple r in R:\n    for each tuple s in S:\n      if theta(r, s):  output (r, s)\n  cost: |R| * |S| tuple comparisons\n  block nested-loop:\n    read R in blocks of B pages\n    for each block of R, scan S once\n  cost: ceil(|R| / B) * |S| page reads + |R| page reads\n\nIndex nested-loop join:\n  for each tuple r in R:\n    use an index on S to find matching s\n  cost: |R| * (index lookup cost)\n  good when R is small and the index on S is selective\n\nHash join (equijoin only):\n  build phase:\n    read the smaller input R\n    hash each tuple on the join key\n    store in a hash table with H buckets\n  probe phase:\n    read the larger input S\n    hash each tuple on the join key\n    scan the matching bucket\n  cost: |R| + |S| page reads + CPU for hashing\n  grace hash join: partition both inputs first, then join each partition\n  good when the smaller input fits in memory\n\nSort-merge join (equijoin):\n  sort R on the join key\n  sort S on the join key\n  merge the two sorted streams\n  cost: sort cost + |R| + |S|\n  good when the inputs are already sorted or the sort is reused\n\nAdaptive join:\n  start with a hash join\n  if the build side does not fit in memory, switch to a sort-merge join\n  used in SAP HANA, SQL Server and modern engines\n\nJoin ordering:\n  for n relations, there are n! left-deep orders\n  dynamic programming (Selinger) explores O(3^n) subsets\n  the goal is to minimize the total cost\n\nComparison:\n  nested-loop:  any predicate, simple, slow for large inputs\n  index NL:     small outer, selective index\n  hash join:    equijoin, one side fits in memory\n  sort-merge:   equijoin, inputs already sorted or sorted once",
+ invariant:"A join algorithm is correct if every matching pair is emitted exactly once. The optimizer picks the algorithm with the lowest estimated cost.",
+ uses:"Every relational query. Joins dominate the cost of analytical workloads.",
+ strength:"Hash join is near-linear for equijoins. Sort-merge exploits sorted inputs. Index NL is excellent for point lookups.",
+ limits:"Nested-loop is quadratic. Hash join needs memory for the build side. Sort-merge pays the sort cost.",
+ pitfall:"Choosing a nested-loop join when a hash join is available. The optimizer may do this if the cardinality estimate is wrong. Always check the actual row counts against the estimate.",
+ question:"Why is hash join usually faster than nested-loop join for large equijoins?",
+ answer:"Hash join reads each input once and probes a hash table, giving O(|R| + |S|) work. Nested-loop scans the inner relation once per outer tuple, giving O(|R| * |S|) work. For large inputs the difference is enormous.",
+ demo:"db-joins",demoTitle:"Nested-loop, hash and sort-merge join cost",sample:"R 8 1000\nS 4 5000\nkey\n0.1",refs:[
+  ["Garcia-Molina, Ullman, Widom, Database Systems: The Complete Book, Chapters 15-16","https://www.pearson.com/en-us/subject-catalog/p/database-systems-the-complete-book/P200000003309"],
+  ["Graefe, Query evaluation techniques for large databases, ACM Computing Surveys 1993","https://doi.org/10.1145/152610.152611"],
+  ["Selinger et al., Access path selection in a relational database management system, SIGMOD 1979","https://doi.org/10.1145/582095.582099"],
+  ["Blanas et al., Design and evaluation of main memory hash join algorithms for multi-core CPUs, SIGMOD 2011","https://doi.org/10.1145/1989323.1989328"]],
+ complexity:["Nested-loop: O(|R| * |S|)","Block nested-loop: O(ceil(|R|/B) * |S|)","Hash join: O(|R| + |S|) expected","Sort-merge: O(|R| log |R| + |S| log |S|)"]},
+
+/* ===== 3 ===== */
+{id:"query-planning",title:"Query planning: relational algebra, Selinger DP and cardinality estimation",level:4,kind:"Query planning",status:"Runnable teaching lab",
+ summary:"The optimizer translates SQL into a relational algebra tree, enumerates alternative plans, estimates the cardinality of each intermediate result and picks the plan with the lowest cost. Selinger's dynamic program explores join orders efficiently.",
+ mental:"An algebra tree and a search over join orders",
+ mentalText:"The optimizer rewrites the query, enumerates plans and costs each one. The search is pruned by dynamic programming over subsets of relations.",
+ problem:"How does a cost-based optimizer choose a query plan?",
+ steps:["Parse the SQL into a logical plan.","Apply rewrite rules: predicate pushdown, projection pruning, join reordering.","Enumerate physical plans for each operator.","Estimate the cardinality of each intermediate result.","Compute the cost of each plan.","Pick the plan with the lowest cost."],
+ pseudo:"Relational algebra:\n  sigma_p(R)   selection (filter)\n  pi_A(R)      projection\n  R x S        Cartesian product\n  R join_p S   join\n  R union S    union\n  R - S        difference\n  gamma_A(R)   aggregation\n  sort_A(R)    sort\n  limit_k(R)   limit\n\nLogical rewrites:\n  push selections down:  sigma_p(R join S) = sigma_p(R) join S  (if p only uses R)\n  push projections down\n  combine selections\n  reorder joins based on cardinality\n\nSelinger dynamic programming:\n  for each subset S of relations (in increasing size):\n    for each way to split S into S1 and S2:\n      cost(S) = min over splits of cost(S1) + cost(S2) + join_cost(S1, S2)\n  the number of subsets is 2^n\n  the number of plans considered is O(3^n)\n  prune plans that are dominated (same subset, higher cost, no better properties)\n  interesting orders: keep a plan if it produces a sorted order that could be reused\n\nCardinality estimation:\n  selectivity of a predicate:\n    equality:  1 / distinct_values(column)\n    range:     (high - low) / (max - min)\n    inequality: 1 - selectivity of the complement\n  independence assumption: sel(A and B) = sel(A) * sel(B)\n  join cardinality: |R join S| = |R| * |S| / max(distinct(R.key), distinct(S.key))\n  histograms: equi-width, equi-height, most-common-values (MCV)\n  the optimizer uses these to estimate\n\nCost model:\n  cost(SeqScan R) = |R| * seq_page_cost + |R| * cpu_tuple_cost\n  cost(IndexScan R) = index_height * random_page_cost\n                    + matching_tuples * random_page_cost\n                    + matching_tuples * cpu_tuple_cost\n  cost(HashJoin R S) = cost(R) + cost(S)\n                     + |R| * cpu_hash_cost + |S| * cpu_hash_cost\n  cost(MergeJoin R S) = cost(R) + cost(S) + sort_cost + merge_cost\n\nPlan choice:\n  the optimizer picks the plan with the lowest estimated cost\n  the estimate is only as good as the statistics\n  a bad estimate gives a bad plan\n\nCommon mistakes:\n  independence assumption fails when columns are correlated\n  uniform distribution assumption fails on skewed data\n  missing statistics on a new column\n  stale statistics after a bulk load",
+ invariant:"The optimizer is only as good as its cardinality estimates. A 10x error in an intermediate cardinality can change the join order and turn a fast plan into a slow one.",
+ uses:"Every cost-based relational optimizer: PostgreSQL, MySQL, Oracle, SQL Server, DuckDB.",
+ strength:"Selinger DP finds the optimal left-deep plan for a given cost model and cardinality estimate. The framework is general and well understood.",
+ limits:"The search space grows exponentially. The cardinality estimates are approximations. Correlated predicates and skewed data break the independence assumption.",
+ pitfall:"Blaming the optimizer for a bad plan when the real problem is a bad cardinality estimate. Run EXPLAIN ANALYZE and compare the estimated rows with the actual rows.",
+ question:"Why is the independence assumption dangerous for cardinality estimation?",
+ answer:"It assumes that predicates on different columns are statistically independent. In practice, columns are often correlated (for example, city and zip code). The product of the selectivities can be orders of magnitude off, which changes the join order and the plan.",
+ demo:"query-planning",demoTitle:"Selinger DP over a join graph and cardinality estimation",sample:"R 1000\nS 500\nT 200\nR-S 0.1\nS-T 0.05\nR-T 0.2",refs:[
+  ["Selinger et al., Access path selection in a relational database management system, SIGMOD 1979","https://doi.org/10.1145/582095.582099"],
+  ["Leis et al., How good are query optimizers, really?, PVLDB 2015","https://doi.org/10.14778/2850583.2850594"],
+  ["Ioannidis, Query optimization, ACM Computing Surveys 1996","https://doi.org/10.1145/234313.234367"],
+  ["Chaudhuri, An overview of query optimization in relational systems, PODS 1998","https://doi.org/10.1145/275487.275492"]],
+ complexity:["O(3^n) plans considered by Selinger DP","O(n log n) for a histogram-based selectivity estimate","Polynomial in the number of relations for a greedy join order","Exponential in the number of relations for the full DP"]},
+
+/* ===== 4 ===== */
+{id:"index-structures",title:"Index structures: hash, B-tree, B+ tree, bitmap, inverted and learned",level:4,kind:"Indexes",status:"Runnable teaching lab",
+ summary:"An index maps a search key to the location of the matching records. Hash indexes are O(1) for equality but do not support ranges. B+ trees support ranges and are the default. Bitmap indexes are compact for low-cardinality columns. Inverted indexes map terms to documents. Learned indexes use a model to predict the position.",
+ mental:"A tree or a hash table on top of the data pages",
+ mentalText:"The index stores keys in a structure that allows fast lookup. The B+ tree keeps the keys sorted and the data in the leaves. The hash index computes a bucket from the key.",
+ problem:"Which index structure fits a given workload and column?",
+ steps:["Classify the workload: equality, range, prefix, full-text, or top-k.","Check the column cardinality.","Choose the structure: hash, B+ tree, bitmap, inverted or learned.","Decide clustered or secondary, covering or not.","Estimate the index size and the update cost.","Measure the query latency and the write amplification."],
+ pseudo:"Hash index:\n  bucket = h(key) mod B\n  each bucket is a chain of (key, record_id) pairs\n  equality:  O(1) expected\n  range:     not supported\n  good for:  point lookups, in-memory hash tables\n  bad for:   range scans, ORDER BY\n\nB-tree (Bayer-McCreight):\n  every node stores keys and record ids or child pointers\n  order m: each node has at most m children and m-1 keys\n  balanced: all leaves at the same depth\n  search:  O(log_m n)\n  insert:  split a full node into two\n  delete:  merge or redistribute underfull nodes\n\nB+ tree:\n  internal nodes store only keys and child pointers\n  leaves store keys and record ids, and are linked\n  range scan: descend to the left leaf, follow the leaf links\n  fanout is higher than B-tree because internal nodes are small\n  the default index in most relational databases\n\nBitmap index:\n  one bit vector per distinct value\n  bit i is 1 if row i has that value\n  AND, OR, NOT are bit operations\n  good for:  low-cardinality columns, warehouse queries\n  bad for:   high-cardinality columns, many updates\n  compressed with run-length encoding\n\nInverted index:\n  a dictionary of terms\n  each term maps to a posting list of (document_id, position)\n  used in search engines and full-text search\n  compression: delta encoding of document ids, variable-byte, PForDelta\n  ranking: BM25, TF-IDF\n\nLearned index:\n  a model predicts the position of a key in a sorted array\n  the model is trained on the data distribution\n  a small search corrects the prediction\n  example: a linear model for a sorted array\n  example: a recursive model index (RMI) for a hierarchy of models\n  good for:  read-only or read-mostly sorted data\n  bad for:   frequent updates, adversarial distributions\n\nClustered vs secondary:\n  clustered: the table is stored in index order\n  secondary: the table is stored in a heap, the index stores row ids\n  covering:  the index contains every column the query needs\n\nIndex selection:\n  more indexes speed up reads and slow down writes\n  each index adds storage and maintenance cost\n  the optimizer picks the index with the lowest cost",
+ invariant:"An index is only useful if the query can use it. A range query on a hash index falls back to a full scan. A low-selectivity predicate on a B+ tree may also fall back.",
+ uses:"Every database and search engine. Indexes are the main tool for query acceleration.",
+ strength:"B+ trees are excellent for both equality and range queries. Bitmap indexes are very compact for low-cardinality columns. Learned indexes can be smaller and faster than B+ trees on read-only data.",
+ limits:"Each index adds write cost and storage. Learned indexes break under updates. Hash indexes do not support ranges. Bitmap indexes suffer under high update rates.",
+ pitfall:"Adding an index for every query. Write-heavy workloads suffer. Use a covering index or a composite index instead of many single-column indexes.",
+ question:"Why does a B+ tree support range scans efficiently?",
+ answer:"The leaves are linked in key order. Once the search descends to the first matching leaf, the scan follows the leaf links. No backtracking up the tree is needed, so a range of k tuples costs O(log n + k).",
+ demo:"index-structures",demoTitle:"B+ tree, hash index and bitmap index",sample:"B+ 4\n10 20 30 40 50 60 70 80 90 100 110 120\n35 75\n\nhash 8\n10 20 30 40 50 60 70 80 90 100\n50\n\nbitmap 6\n1 2 1 3 2 1 3 2 1 3",refs:[
+  ["Comer, The ubiquitous B-tree, ACM Computing Surveys 1979","https://doi.org/10.1145/356770.356776"],
+  ["Bayer, McCreight, Organization and maintenance of large ordered indices, Acta Informatica 1972","https://doi.org/10.1007/BF00288683"],
+  ["Kraska et al., The case for learned index structures, SIGMOD 2018","https://doi.org/10.1145/3183713.3196909"],
+  ["Zobel, Moffat, Inverted files for text search engines, ACM Computing Surveys 2006","https://doi.org/10.1145/1132956.1132959"]],
+ complexity:["Hash index: O(1) expected equality","B+ tree: O(log_m n) for equality and range","Bitmap index: O(n/64) per bitwise operation","Inverted index: O(log |V| + k) for a term lookup","Learned index: O(1) plus a small search"]},
+
+/* ===== 5 ===== */
+{id:"concurrency-control",title:"Transaction concurrency: 2PL, timestamp ordering, OCC and MVCC",level:4,kind:"Concurrency",status:"Runnable teaching lab",
+ summary:"Concurrency control decides the order of conflicting operations. Two-phase locking uses shared and exclusive locks. Timestamp ordering uses a global timestamp. Optimistic concurrency control validates at commit time. MVCC keeps multiple versions so readers do not block writers.",
+ mental:"A schedule of reads and writes and a rule that decides whether it is legal",
+ mentalText:"Each transaction reads and writes items. The scheduler interleaves the operations. The rule decides which interleavings are allowed and which must abort.",
+ problem:"How do you schedule concurrent transactions so that the result is serializable?",
+ steps:["Define the read and write sets of each transaction.","Choose the protocol: 2PL, timestamp ordering, OCC or MVCC.","Track the locks, timestamps or versions.","Detect conflicts and either block or abort.","Ensure the final schedule is serializable.","Measure the throughput and the abort rate."],
+ pseudo:"Conflict:\n  two operations conflict if they access the same item\n  and at least one is a write\n\nSerializability:\n  a schedule is serializable if it is equivalent to some serial schedule\n  conflict serializability: the precedence graph is acyclic\n\nTwo-phase locking (2PL):\n  phase 1: growing, acquire locks, never release\n  phase 2: shrinking, release locks, never acquire\n  S lock (shared):  read\n  X lock (exclusive): write\n  lock compatibility:\n    S-S: yes,  S-X: no,  X-X: no\n  strict 2PL: hold all locks until commit or abort\n  guarantees conflict serializability\n  can deadlock: use wait-for graph or timeouts\n\nTimestamp ordering (TO):\n  each transaction has a timestamp ts(T)\n  each item has read_ts and write_ts\n  read:  if ts(T) < write_ts(item), abort T\n  write: if ts(T) < read_ts(item) or ts(T) < write_ts(item), abort T\n  otherwise, update the timestamp\n  no locks, no deadlock\n  can abort many transactions on hot items\n\nOptimistic concurrency control (OCC):\n  read phase:  read the items, keep a read set and a write set\n  validate phase:  check for conflicts with committed transactions\n  write phase:  apply the writes\n  validation:  check that no other transaction wrote an item in the read set\n  good when conflicts are rare\n  bad when conflicts are frequent\n\nMultiversion concurrency control (MVCC):\n  each write creates a new version of the item\n  each transaction reads a snapshot consistent with its start time\n  readers do not block writers\n  writers do not block readers\n  snapshot isolation (SI):  a transaction sees a consistent snapshot\n  write-write conflicts are detected at commit\n  write skew is possible under SI\n\nSerializable snapshot isolation (SSI):\n  detects rw-antidependencies\n  aborts a transaction if a dangerous structure is found\n  gives full serializability with MVCC\n\nDeadlock:\n  a cycle in the wait-for graph\n  detection:  build the graph periodically and abort a victim\n  prevention:  wait-die or wound-wait based on timestamps\n  timeout:  simple but can abort unnecessarily\n\nPhantom problem:\n  a range predicate sees a different set of rows on a re-read\n  prevented by predicate locks or by SSI\n\nComparison:\n  2PL:     serializable, blocks, deadlocks\n  TO:      serializable, no deadlock, aborts\n  OCC:     serializable, no locks, aborts on conflict\n  MVCC:    snapshot isolation, readers never block, write skew\n  SSI:     serializable MVCC",
+ invariant:"A concurrency control protocol is correct if every allowed schedule is serializable. The protocol trades blocking, aborts and complexity.",
+ uses:"Every transactional database, from Postgres and Oracle to MySQL/InnoDB and SQL Server.",
+ strength:"MVCC gives non-blocking reads and high concurrency. SSI adds full serializability. 2PL is simple and well understood.",
+ limits:"2PL can deadlock. OCC aborts on conflict. MVCC needs version storage and garbage collection. SSI aborts more transactions.",
+ pitfall:"Assuming MVCC gives serializability. Plain MVCC gives snapshot isolation, which allows write skew. Use SSI or explicit locking for full serializability.",
+ question:"Why does snapshot isolation allow write skew?",
+ answer:"Each transaction reads a consistent snapshot and writes disjoint items. The write sets do not overlap, so there is no write-write conflict to detect. But the combination of the two transactions can violate an invariant that spans both items. Only a serializability check detects this.",
+ demo:"concurrency-control",demoTitle:"2PL schedule, MVCC visibility and SSI conflicts",sample:"T1 R A\nT1 W A\nT2 R A\nT1 C\nT2 W B\nT2 C",refs:[
+  ["Bernstein, Hadzilacos, Goodman, Concurrency Control and Recovery in Database Systems, Addison-Wesley 1987","https://www.microsoft.com/en-us/research/people/philbe/"],
+  ["Berenson et al., A critique of ANSI SQL isolation levels, SIGMOD 1995","https://doi.org/10.1145/223784.223785"],
+  ["Cahill, Röhm, Fekete, Serializable isolation for snapshot databases, SIGMOD 2008","https://doi.org/10.1145/1376616.1376712"],
+  ["Kung, Robinson, On optimistic methods for concurrency control, ACM TODS 1981","https://doi.org/10.1145/319566.319567"]],
+ complexity:["O(1) lock acquisition in the common case","O(n) for deadlock detection over n transactions","O(versions) for MVCC garbage collection","Abort rate depends on the conflict rate"]},
+
+/* ===== 6 ===== */
+{id:"recovery-durability",title:"Recovery and durability: WAL, ARIES, checkpoints and redo/undo",level:4,kind:"Recovery",status:"Runnable teaching lab",
+ summary:"Write-ahead logging writes the log record before the data page. ARIES uses a log, a dirty page table and a transaction table to recover after a crash. Checkpoints bound the recovery time. Redo repeats history and undo rolls back losers.",
+ mental:"A log on stable storage and a set of pages in memory",
+ mentalText:"Every change is written to the log first. On a crash, the recovery manager reads the log, redoes committed work and undoes uncommitted work.",
+ problem:"How do you guarantee durability and atomicity when the system can crash at any moment?",
+ steps:["Assign each transaction a log sequence number (LSN).","Write each change to the log before the data page.","Flush the log on commit.","Take periodic checkpoints to bound recovery.","On restart, run analysis, redo and undo.","Verify the database is consistent."],
+ pseudo:"Write-ahead logging (WAL):\n  before writing a data page, write the log record\n  each log record has an LSN\n  each page has a pageLSN = the LSN of the last change\n  on recovery, apply log records with LSN > pageLSN\n  on commit, flush the log up to the commit LSN\n\nLog record types:\n  update:  (T, page, offset, before, after, prev_LSN)\n  commit:  (T, commit)\n  abort:   (T, abort)\n  checkpoint:  (list of active transactions, dirty page table)\n  CLR (compensation log record):  (T, undo_next_LSN)\n\nARIES recovery (three phases):\n  analysis:\n    scan the log forward from the last checkpoint\n    rebuild the transaction table (active transactions)\n    rebuild the dirty page table (pages not yet flushed)\n    find the redo start point:  min(recLSN) over dirty pages\n  redo:\n    scan forward from the redo start point\n    for each update record:\n      if page not in dirty page table, or pageLSN >= LSN, skip\n      else read the page, apply the change, set pageLSN = LSN\n    redo repeats history, including uncommitted transactions\n  undo:\n    for each loser transaction (uncommitted at crash):\n      walk back through its log records\n      apply the before image\n      write a CLR for each undo\n    when a CLR is encountered, skip to its undo_next_LSN\n\nCheckpoints:\n  fuzzy checkpoint: do not flush all pages, just record the state\n  sharp checkpoint: flush all dirty pages, then record\n  fuzzy checkpoints are used in production\n  recovery time = time from checkpoint to crash\n\nDurability modes:\n  synchronous commit:  flush the log on commit, durable but slower\n  asynchronous commit:  do not flush, faster but may lose recent commits\n  group commit:  batch several commits into one flush\n\nReplication:\n  physical replication:  ship the WAL records to a replica\n  logical replication:  ship the logical changes (row-level)\n  synchronous:  wait for the replica to acknowledge\n  asynchronous:  do not wait, risk of data loss on failover\n  quorum commit:  wait for a majority of replicas\n\nRecovery from media failure:\n  restore a base backup\n  replay the WAL from the backup start point\n  point-in-time recovery (PITR) to a chosen LSN",
+ invariant:"The log is the source of truth. A data page can always be reconstructed from the log. WAL ensures atomicity and durability.",
+ uses:"Every durable database: PostgreSQL, MySQL/InnoDB, SQL Server, Oracle, SQLite.",
+ strength:"WAL gives durability with sequential I/O. ARIES gives a precise recovery algorithm with bounded recovery time. Group commit amortizes the flush cost.",
+ limits:"The log grows and must be truncated by checkpoints. Recovery time depends on the checkpoint interval. Synchronous commit costs a flush per transaction.",
+ pitfall:"Skipping the log flush on commit for performance. A crash then loses the last transactions, violating durability. Use group commit or asynchronous commit only when the application tolerates the loss.",
+ question:"Why does ARIES redo uncommitted transactions during recovery?",
+ answer:"Redo repeats history, so it redoes everything from the redo start point, including the changes of transactions that were uncommitted at the crash. The undo phase then rolls back those losers. Redoing them first makes the undo phase use the correct page state.",
+ demo:"recovery-durability",demoTitle:"WAL records, ARIES phases and checkpoint",sample:"T1 W A 10\nT1 W B 20\nT2 W A 30\nCKPT\nT1 C\nT2 C\nT1 W C 40\nCRASH",refs:[
+  ["Mohan et al., ARIES: a transaction recovery method supporting fine-granularity locking and partial rollbacks using write-ahead logging, ACM TODS 1992","https://doi.org/10.1145/128765.128770"],
+  ["Gray, Reuter, Transaction Processing: Concepts and Techniques, Morgan Kaufmann 1993","https://www.sciencedirect.com/book/9781558601901/transaction-processing"],
+  ["Haerder, Reuter, Principles of transaction-oriented database recovery, ACM Computing Surveys 1983","https://doi.org/10.1145/289.291"],
+  ["PostgreSQL documentation, Write-Ahead Logging (WAL)","https://www.postgresql.org/docs/current/wal.html"]],
+ complexity:["O(1) log write per change","O(log size) recovery scan","Recovery time bounded by the checkpoint interval","Group commit amortizes the flush cost"]},
+
+/* ===== 7 ===== */
+{id:"storage-engines",title:"Storage engines: heap files, slotted pages, LSM trees and CoW B-trees",level:4,kind:"Storage engines",status:"Runnable teaching lab",
+ summary:"A storage engine decides how records are laid out on disk and how updates are applied. Heap files with slotted pages are the classic layout. LSM trees turn random writes into sequential writes with compaction. Copy-on-write B-trees give snapshot isolation for free.",
+ mental:"An append-only log and a set of immutable sorted files",
+ mentalText:"The LSM tree buffers writes in memory, flushes them to disk as sorted runs and merges the runs in the background. The CoW B-tree copies the path from the root to the leaf on every write.",
+ problem:"Which storage engine layout fits a given read/write workload?",
+ steps:["Classify the workload: read-heavy, write-heavy, mixed, or scan-heavy.","Choose the layout: heap, LSM, or CoW B-tree.","Choose the page format: slotted pages, log-structured, or columnar.","Decide the compaction strategy for LSM: leveled or tiered.","Estimate the read amplification, the write amplification and the space amplification.","Measure."],
+ pseudo:"Heap file with slotted pages:\n  page header:  page id, free space pointer, slot count, slot directory\n  slot directory:  offsets to the records\n  insert:  find a page with enough free space, write the record, add a slot\n  delete:  mark the slot as deleted, reclaim space on vacuum\n  update:  in-place if the new record fits, else move to a new page\n\nLSM tree (log-structured merge tree):\n  memtable:  an in-memory sorted structure (skiplist or B-tree)\n  on flush:  write the memtable to disk as an immutable sorted string table (SSTable)\n  levels:  L0 holds recent flushes, L1 to Lk hold larger runs\n  read:  check the memtable, then L0, L1, ...\n  point lookup uses a Bloom filter per SSTable to skip files\n  compaction:\n    leveled:  each level has a size limit; merge overlapping files into the next level\n    tiered:  group files into tiers; merge when a tier is full\n  write amplification:  bytes written to disk / bytes written by the user\n  read amplification:  number of SSTables checked per read\n  space amplification:  disk bytes / logical bytes\n\nLeveled vs tiered compaction:\n  leveled:  lower read and space amplification, higher write amplification\n  tiered:   lower write amplification, higher read and space amplification\n  RocksDB, LevelDB and Cassandra use leveled by default\n  ScyllaDB and some workloads use tiered\n\nBloom filter:\n  a bit array of m bits and k hash functions\n  insert:  set the k bits\n  query:  if any bit is 0, the key is not present\n          if all bits are 1, the key is probably present\n  false positive rate:  (1 - e^(-kn/m))^k\n  no false negatives\n  memory:  about 10 bits per key for a 1% false positive rate\n\nCopy-on-write B-tree:\n  every write copies the path from the root to the leaf\n  the old root remains valid, giving a snapshot\n  used in LMDB, BoltDB and some file systems\n  no in-place updates, so no torn pages\n  write amplification:  the height of the tree per write\n\nComparison:\n  heap + B+ tree:  good for read-heavy, range scans, in-place updates\n  LSM tree:        good for write-heavy, high ingest rate\n  CoW B-tree:      good for read-heavy with snapshots\n\nRead/write/space amplification:\n  B+ tree:  read = O(log n), write = 1 page per update, space ~ 1.0\n  LSM:      read = O(log n * levels), write = O(levels), space > 1.0\n  CoW:      read = O(log n), write = O(log n), space ~ 1.0 + snapshots",
+ invariant:"Every storage engine trades read amplification, write amplification and space amplification. No layout minimizes all three at once.",
+ uses:"RocksDB, LevelDB, Cassandra, ScyllaDB, HBase, MongoDB (WiredTiger), LMDB, SQLite.",
+ strength:"LSM trees turn random writes into sequential writes. CoW B-trees give consistent snapshots for free. Bloom filters reduce read amplification.",
+ limits:"LSM compaction consumes I/O bandwidth. CoW B-trees amplify writes by the tree height. Bloom filters have false positives.",
+ pitfall:"Choosing leveled compaction for a write-heavy workload. The write amplification can be 20x or more. Use tiered compaction or a larger level multiplier.",
+ question:"Why does a Bloom filter have no false negatives?",
+ answer:"Insert sets the k bits for a key. A query checks the same k bits. If the key was inserted, all k bits are 1, so the filter never reports absent. Only false positives are possible when other keys have set the same bits.",
+ demo:"storage-engines",demoTitle:"LSM flush, leveled compaction, Bloom filter",sample:"1000 100 7\n0.01\nleveled",refs:[
+  ["O'Neil et al., The log-structured merge-tree (LSM-tree), Acta Informatica 1996","https://doi.org/10.1007/s002360050048"],
+  ["Bloom, Space/time trade-offs in hash coding with allowable errors, CACM 1970","https://doi.org/10.1145/362686.362692"],
+  ["Luo, Carey, LSM-based storage techniques: a survey, VLDB Journal 2020","https://doi.org/10.1007/s00778-019-00555-y"],
+  ["RocksDB wiki, Leveled compaction","https://github.com/facebook/rocksdb/wiki/Leveled-Compaction"]],
+ complexity:["LSM write: O(1) amortized for the memtable insert","LSM read: O(levels) SSTable lookups","Compaction: O(data size) per merge","Bloom filter: O(k) per query"]},
+
+/* ===== 8 ===== */
+{id:"columnar-storage",title:"Columnar and compressed storage: dictionary, RLE, delta, bit packing",level:4,kind:"Columnar storage",status:"Runnable teaching lab",
+ summary:"A columnar store keeps each column separately, which improves compression and scan performance for analytical queries. Dictionary encoding maps values to small codes. RLE, delta encoding and frame-of-reference compress integer sequences. Parquet combines these into a columnar file format.",
+ mental:"Columns stored contiguously, values encoded as small integers",
+ mentalText:"The engine reads only the columns the query needs. Each column is compressed independently. The encoding is chosen per column based on the data distribution.",
+ problem:"How do you store analytical data compactly and scan it fast?",
+ steps:["Choose the columnar layout: column chunks, row groups, pages.","Pick the encoding per column: dictionary, RLE, delta, bit packing or frame-of-reference.","Choose the compression codec: Snappy, ZSTD, LZ4 or gzip.","Write the metadata: min/max per page, null counts, bloom filters.","Read only the columns and the row groups the query needs.","Measure the compression ratio and the scan throughput."],
+ pseudo:"Columnar layout:\n  row group:  a horizontal partition of the table (for example, 128 MB)\n  column chunk:  the data for one column inside a row group\n  page:  the smallest unit of encoding and compression (for example, 1 MB)\n  metadata:  min/max, null count, distinct count, encoding per page\n\nDictionary encoding:\n  build a dictionary of distinct values\n  replace each value with its dictionary code\n  codes are bit-packed to ceil(log2(distinct)) bits\n  good for:  low-cardinality columns (status, country, category)\n  bad for:   high-cardinality columns with no repeats\n  the dictionary itself can be sorted to allow range queries\n\nRun-length encoding (RLE):\n  replace runs of the same value with (value, count)\n  good for:  sorted columns, columns with long runs\n  bad for:   random data with no runs\n  bit-packing RLE:  store the run lengths with variable-bit encoding\n\nDelta encoding:\n  store the difference between consecutive values\n  good for:  sorted or near-sorted integer columns (timestamps, ids)\n  the deltas are smaller and compress better\n  second-order delta:  store the difference of the differences\n\nFrame-of-reference (FOR):\n  pick a reference value (usually the minimum)\n  store (value - reference) for each value\n  bit-pack the offsets to the minimum number of bits\n  good for:  clustered integer columns\n  the reference is stored once per page\n\nBit packing:\n  store each value in a fixed number of bits\n  the width is chosen per page from the maximum value\n  good for:  small integer ranges\n  combined with FOR for clustered data\n\nCompression codecs:\n  Snappy:  fast, moderate ratio\n  ZSTD:    slower, better ratio, tunable\n  LZ4:     fastest, lower ratio\n  gzip:    slowest, best ratio of the classic codecs\n\nParquet concepts:\n  columnar file format\n  row groups, column chunks, pages\n  encodings:  plain, dictionary, RLE, delta, bit-packed\n  compression per column chunk\n  statistics per page:  min, max, null count\n  predicate pushdown using the statistics\n  nested data via definition and repetition levels (Dremel)\n  schema evolution:  add columns without rewriting\n\nVectorized execution:\n  process a batch of values (for example, 1024) per operator call\n  amortize the per-tuple overhead\n  exploit SIMD and cache locality\n  used in DuckDB, Velox, ClickHouse\n\nLate materialization:\n  apply filters on the columnar data first\n  fetch the remaining columns only for the surviving rows\n  reduces I/O for wide tables",
+ invariant:"A columnar layout reads only the columns the query needs. A good encoding reduces the bytes read and the CPU spent decoding. The compression ratio depends on the data distribution.",
+ uses:"Data warehouses, analytical engines, Parquet and ORC files, ClickHouse, DuckDB, Snowflake, BigQuery.",
+ strength:"Excellent compression and scan throughput for analytical workloads. Predicate pushdown with min/max statistics skips whole pages.",
+ limits:"Columnar layouts are bad for point lookups and for write-heavy workloads. Updates and deletes need rewriting or delta files.",
+ pitfall:"Using dictionary encoding for a high-cardinality column. The dictionary becomes as large as the data and the codes need many bits. Use plain or delta encoding instead.",
+ question:"Why is dictionary encoding good for low-cardinality columns?",
+ answer:"The distinct values are stored once. Each value is replaced by a small integer code. If the column has d distinct values, each code needs ceil(log2 d) bits. For a column with 10 distinct values and 1 million rows, the codes take about 4 bits per value instead of the full value size.",
+ demo:"columnar-storage",demoTitle:"Dictionary, RLE, delta, FOR and bit packing",sample:"status\nNEW ACTIVE ACTIVE CLOSED ACTIVE NEW ACTIVE CLOSED CLOSED ACTIVE\n\nids\n1 2 3 4 5 6 7 8 9 10\n\nsizes\n100 100 100 100 200 200 200 300 300 300",refs:[
+  ["Abadi, Madden, Ferreira, Integrating compression and execution in column-oriented database systems, SIGMOD 2006","https://doi.org/10.1145/1142473.1142548"],
+  ["Melink et al., Dremel: interactive analysis of web-scale datasets, PVLDB 2010","https://doi.org/10.14778/1920841.1920886"],
+  ["Parquet format specification","https://parquet.apache.org/docs/file-format/"],
+  ["Boncz, Zukowski, Nes, MonetDB/X100: hyper-pipelining query execution, CIDR 2005","https://www.cidrdb.org/cidr2005/papers/P19.pdf"]],
+ complexity:["Dictionary encoding: O(n) to build, O(1) per value","RLE: O(n) to encode, O(runs) to decode","Delta: O(n) to encode, O(n) to decode","Bit packing: O(n) to encode, O(n) to decode"]},
+
+/* ===== 9 ===== */
+{id:"partitioning-fault",title:"Partitioning and fault tolerance: range, hash, consistent hashing, replication, RAID",level:5,kind:"Partitioning",status:"Runnable teaching lab",
+ summary:"Partitioning splits data across nodes. Range partitioning supports range scans. Hash partitioning balances the load. Consistent hashing adds and removes nodes with minimal data movement. Replication and erasure coding provide fault tolerance.",
+ mental:"A ring of nodes and a key-to-node mapping",
+ mentalText:"Each key is hashed to a position on the ring. The node clockwise from that position owns the key. Adding a node only moves the keys in the new node's range.",
+ problem:"How do you distribute data across many nodes and survive failures?",
+ steps:["Choose the partitioning key and the strategy.","Map keys to partitions: ranges, hash buckets or a consistent hash ring.","Choose the replication factor and the placement.","Choose the consistency model for reads and writes.","Choose the fault tolerance mechanism: replication or erasure coding.","Rebalance when nodes join or leave."],
+ pseudo:"Range partitioning:\n  partition i owns the key range [k_i, k_{i+1})\n  good for:  range scans, ordered access\n  bad for:   hotspots when the key is monotonically increasing (timestamps)\n\nHash partitioning:\n  partition = h(key) mod N\n  good for:  uniform distribution\n  bad for:   range scans, resharding moves almost every key\n\nConsistent hashing:\n  hash each node to a position on a ring of size 2^m\n  hash each key to a position on the ring\n  the key is owned by the first node clockwise\n  adding a node only moves the keys in its range\n  removing a node only moves its keys to the next node\n  virtual nodes:  each physical node has many ring positions\n    improves load balance\n    allows heterogeneous capacity\n\nReplication:\n  replication factor R:  each key is stored on R nodes\n  primary-backup:  one node is the primary, the others are backups\n  chain replication:  writes go through a chain of replicas\n  quorum:  read from Rr nodes, write to Rw nodes, Rr + Rw > R\n  strong consistency:  read from the primary or use quorums\n  eventual consistency:  read from any replica\n  read repair:  fix stale replicas during reads\n  anti-entropy:  background process to reconcile replicas\n\nSharding:\n  a shard is a partition managed by a node\n  the shard map maps shards to nodes\n  the coordinator routes queries to the right shards\n  rebalancing moves shards between nodes\n\nReed-Solomon erasure coding:\n  split the data into k data blocks\n  compute m parity blocks\n  any k of the k + m blocks reconstruct the data\n  storage overhead:  (k + m) / k\n  example:  k = 10, m = 4 -> 1.4x overhead, tolerates 4 failures\n  replication with R = 3 has 3x overhead, tolerates 2 failures\n  erasure coding saves storage but costs CPU and network on recovery\n\nRAID levels:\n  RAID 0:  striping, no redundancy\n  RAID 1:  mirroring, 2x overhead\n  RAID 5:  striping with distributed parity, tolerates 1 failure\n  RAID 6:  striping with double parity, tolerates 2 failures\n  RAID 10:  mirroring + striping, 2x overhead\n  parity is computed with XOR (RAID 5) or Reed-Solomon (RAID 6)\n\nRebalancing:\n  range:  split or merge ranges, move the affected keys\n  hash:  consistent hashing moves only 1/N of the keys\n  fixed number of partitions:  create many partitions, move whole partitions\n  dynamic:  split a partition when it grows too large\n\nHotspots:\n  a single key or range receives most of the traffic\n  mitigation:  add a random prefix to the key, split the hot range, cache the hot data\n\nConsistency models:\n  strong:  linearizable, reads see the latest write\n  eventual:  replicas converge over time\n  causal:  reads see causally related writes\n  read-your-writes:  a session sees its own writes",
+ invariant:"A partitioning scheme is correct if every key is owned by exactly one primary node (for a given replication factor). Fault tolerance is correct if the system can serve every key after up to f failures, where f is determined by the replication or erasure coding scheme.",
+ uses:"Cassandra, DynamoDB, MongoDB, HBase, Kafka, HDFS, Ceph, S3.",
+ strength:"Consistent hashing minimizes data movement on membership changes. Erasure coding reduces storage overhead. Quorums tune consistency and availability.",
+ limits:"Consistent hashing needs virtual nodes for balance. Erasure coding costs CPU and network on recovery. Quorums add latency.",
+ pitfall:"Using modulo hashing for a system that grows. Adding a node remaps almost every key. Use consistent hashing or a fixed large number of partitions.",
+ question:"Why do virtual nodes improve consistent hashing?",
+ answer:"A single ring position per physical node can leave large gaps and small gaps, causing uneven load. Many virtual nodes per physical node spread the positions around the ring, which makes the load per node concentrate around the average with low variance.",
+ demo:"partitioning-fault",demoTitle:"Consistent hashing, replication and erasure coding",sample:"N 8\nV 100\nK 1000\nR 3\nEC 10 4",refs:[
+  ["Karger et al., Consistent hashing and random trees: distributed caching protocols for relieving hot spots on the World Wide Web, STOC 1997","https://doi.org/10.1145/258533.258660"],
+  ["DeCandia et al., Dynamo: Amazon's highly available key-value store, SOSP 2007","https://doi.org/10.1145/1294261.1294281"],
+  ["Reed, Solomon, Polynomial codes over certain finite fields, SIAM J. Applied Mathematics 1960","https://doi.org/10.1137/0108018"],
+  ["Patterson, Gibson, Katz, A case for redundant arrays of inexpensive disks (RAID), SIGMOD 1988","https://doi.org/10.1145/50202.50214"]],
+ complexity:["Consistent hashing: O(log N) to find the owner","Replication: O(R) writes per key","Erasure coding: O(k + m) per stripe","Rebalancing: O(keys / N) per node change with virtual nodes"]},
+
+/* ===== 10 ===== */
+{id:"distributed-queries",title:"Distributed queries and analytics: joins, aggregation, AQP and materialized views",level:5,kind:"Distributed analytics",status:"Runnable teaching lab",
+ summary:"A distributed query runs across many nodes. Distributed joins choose between broadcast, shuffle and co-located joins. Aggregation uses partial and final aggregation. Approximate query processing uses sketches to answer fast. Materialized views precompute results and query caching reuses them.",
+ mental:"A plan tree that spans many nodes with data movement between them",
+ mentalText:"The coordinator splits the query into fragments. Each fragment runs on a node. Data moves between nodes during joins and aggregations. The coordinator combines the results.",
+ problem:"How do you execute a query across many nodes efficiently?",
+ steps:["Parse and plan the query on the coordinator.","Split the plan into fragments.","Choose the data movement: broadcast, shuffle or co-located.","Push predicates and projections to the fragments.","Execute the fragments in parallel.","Combine the results on the coordinator."],
+ pseudo:"Distributed join strategies:\n  broadcast join:\n    send the small relation to every node\n    each node joins its local partition of the large relation\n    good when one side is small\n  shuffle join (hash join):\n    hash both relations on the join key\n    send each row to the node owning its key\n    each node joins its local partitions\n    good when both sides are large\n  co-located join:\n    both relations are partitioned on the join key\n    no data movement, join each partition locally\n    requires a shared partitioning scheme\n  semi-join:\n    send only the join keys from the small side\n    filter the large side, then join\n    reduces the shuffle size\n\nAggregation:\n  partial aggregation on each node\n  shuffle by the group key\n  final aggregation on the receiving nodes\n  combiners reduce the shuffle size (like a MapReduce combiner)\n  DISTINCT needs a second pass or a sketch\n  COUNT DISTINCT can use HyperLogLog for an approximate answer\n\nApproximate query processing (AQP):\n  sample the data and answer the query on the sample\n  the answer has a confidence interval\n  used in interactive dashboards and exploratory analysis\n  advantages:  sub-second answers on huge tables\n  disadvantages:  approximate results, hard for joins and rare groups\n\nSketches in analytics:\n  Count-Min Sketch:  point frequencies, heavy hitters\n  HyperLogLog:  approximate distinct count\n  t-digest:  approximate quantiles\n  AMS:  frequency moments\n  mergeable across nodes\n\nMaterialized views:\n  precompute the result of a query and store it\n  refresh on commit, on demand or periodically\n  incremental maintenance:  apply the delta instead of recomputing\n  query rewriting:  the optimizer can use a materialized view to answer a query\n  good for:  repeated analytical queries on slowly changing data\n  bad for:   fast-changing data with strict freshness requirements\n\nQuery caching:\n  result cache:  cache the full result of a query\n  plan cache:  cache the plan, not the result\n  semantic cache:  match queries by their normalized form\n  invalidation:  on write to any table the query references\n  hit ratio depends on the query repetition\n\nDistributed query engines:\n  MapReduce, Spark SQL, Presto/Trino, Apache Flink, Snowflake, BigQuery, Redshift\n  vectorized execution and columnar storage dominate\n  shuffle is the main bottleneck\n  skew handling:  split hot keys, use a salting prefix\n\nFault tolerance in distributed queries:\n  task retry, speculative execution, checkpointing\n  a slow node (straggler) dominates the runtime\n  speculative execution launches a duplicate task\n\nCost model:\n  cost = local_work + data_movement * network_cost\n  network is 10-100x slower than memory\n  minimizing shuffle is the primary goal",
+ invariant:"A distributed query plan is only as fast as its slowest fragment. Data movement dominates the cost. Co-located joins avoid the shuffle entirely.",
+ uses:"Data warehouses, data lakes, streaming analytics, business intelligence, real-time dashboards.",
+ strength:"Horizontal scaling for large data. AQP gives sub-second answers on huge tables. Materialized views precompute expensive results.",
+ limits:"Shuffle is the bottleneck. Skew and stragglers dominate the tail latency. AQP gives approximate answers. Materialized views need maintenance.",
+ pitfall:"Broadcasting a large relation in a distributed join. The network becomes the bottleneck. Check the estimated sizes before choosing the join strategy.",
+ question:"Why does a broadcast join often beat a shuffle join?",
+ answer:"A broadcast join sends the small relation to every node and joins it with the local partition of the large relation. No shuffle of the large relation is needed. A shuffle join moves both relations across the network. When one side is small, broadcasting is much cheaper.",
+ demo:"distributed-queries",demoTitle:"Distributed join strategies and aggregation",sample:"broadcast 1000 100000\nshuffle 100000 100000\ncolocated 100000 100000\nnodes 8",refs:[
+  ["Dean, Ghemawat, MapReduce: simplified data processing on large clusters, OSDI 2004","https://www.usenix.org/conference/osdi-04/mapreduce-simplified-data-processing-large-clusters"],
+  ["Zaharia et al., Spark: cluster computing with working sets, HotCloud 2010","https://www.usenix.org/conference/hotcloud-10/spark-cluster-computing-working-sets"],
+  ["Armbrust et al., Spark SQL: relational data processing in Spark, SIGMOD 2015","https://doi.org/10.1145/2723372.2742797"],
+  ["Gupta, Mumick, Materialized views: techniques, implementations, and applications, MIT Press 1999","https://mitpress.mit.edu/9780262571289/materialized-views/"]],
+ complexity:["Broadcast: O(|R| * N) network for the small side","Shuffle: O(|R| + |S|) network","Co-located: no network","Aggregation: O(|R|) local + shuffle","AQP: O(sample) per query"]}
+];
+
+var LESSONS=RAW.map(mk);
+var byId={};
+LESSONS.forEach(function(l){byId[l.id]=l});
+
+/* ============================================================
+   Python code snippets
+   ============================================================ */
+var CODE={};
+
+CODE["db-foundations"]=[
+"# Page layout, buffer hit ratio and scan cost",
+"import math",
+"",
+"PAGE_SIZE = 4096      # bytes",
+"RECORD_SIZE = 100     # bytes",
+"records = 1_000_000",
+"records_per_page = PAGE_SIZE // RECORD_SIZE",
+"pages = math.ceil(records / records_per_page)",
+"print('records per page', records_per_page)",
+"print('pages for the table', pages)",
+"",
+"# Buffer hit ratio",
+"def access_time(hit_ratio, mem_ns=100, disk_ns=100_000):",
+"    return hit_ratio * mem_ns + (1 - hit_ratio) * disk_ns",
+"",
+"for hr in [0.0, 0.5, 0.9, 0.99, 1.0]:",
+"    print(f'hit_ratio={hr:.2f}  avg access = {access_time(hr):.1f} ns')",
+"",
+"# Sequential scan vs index lookup",
+"def seq_scan_cost(pages, seq_page_cost=1.0, cpu_tuple_cost=0.01, tuples=1_000_000):",
+"    return pages * seq_page_cost + tuples * cpu_tuple_cost",
+"",
+"def index_scan_cost(matching, height=3, random_page_cost=4.0, cpu_tuple_cost=0.01):",
+"    return height * random_page_cost + matching * (random_page_cost + cpu_tuple_cost)",
+"",
+"print('seq scan ', round(seq_scan_cost(pages), 2))",
+"for m in [10, 100, 1000, 10000]:",
+"    print(f'index scan matching={m:6d}  cost={index_scan_cost(m):.2f}')",
+"",
+"# Crossover point",
+"print('index wins up to about', round((pages * 1.0) / (4.0 + 0.01)), 'matching rows')"
+].join("\n");
+
+CODE["db-joins"]=[
+"# Nested-loop, hash and sort-merge join cost",
+"import math",
+"",
+"def nested_loop_cost(R, S, B=100):",
+"    # block nested loop, R is the outer",
+"    return math.ceil(R / B) * S + R",
+"",
+"def hash_join_cost(R, S, mem_pages=1000):",
+"    # grace hash join with one partition pass",
+"    if min(R, S) <= mem_pages:",
+"        return R + S",
+"    return 3 * (R + S)  # partition + build + probe",
+"",
+"def sort_merge_cost(R, S):",
+"    def sort_cost(n):",
+"        # external merge sort with 2-way merge",
+"        return 2 * n * math.ceil(math.log2(max(n, 2)))",
+"    return sort_cost(R) + sort_cost(S) + R + S",
+"",
+"cases = [(100, 10_000), (1000, 1000), (10_000, 10_000), (100_000, 100_000)]",
+"print(f'{\"R\":>8} {\"S\":>8} {\"NL\":>10} {\"Hash\":>10} {\"SortMerge\":>10}')",
+"for R, S in cases:",
+"    print(f'{R:>8} {S:>8} {nested_loop_cost(R,S):>10} {hash_join_cost(R,S):>10} {sort_merge_cost(R,S):>10}')",
+"",
+"# Hash join on two small tables",
+"R = [(1, 'a'), (2, 'b'), (3, 'c'), (4, 'd')]",
+"S = [(1, 'x'), (2, 'y'), (4, 'z'), (5, 'w')]",
+"",
+"# Build the hash table on S",
+"ht = {}",
+"for k, v in S:",
+"    ht.setdefault(k, []).append(v)",
+"result = []",
+"for k, v in R:",
+"    if k in ht:",
+"        for w in ht[k]:",
+"            result.append((k, v, w))",
+"print('hash join result:', result)",
+"",
+"# Sort-merge join",
+"R_sorted = sorted(R)",
+"S_sorted = sorted(S)",
+"i = j = 0",
+"merge = []",
+"while i < len(R_sorted) and j < len(S_sorted):",
+"    if R_sorted[i][0] == S_sorted[j][0]:",
+"        k = R_sorted[i][0]",
+"        a = [r for r in R_sorted if r[0] == k]",
+"        b = [s for s in S_sorted if s[0] == k]",
+"        for r in a:",
+"            for s in b:",
+"                merge.append((k, r[1], s[1]))",
+"        i += len(a); j += len(b)",
+"    elif R_sorted[i][0] < S_sorted[j][0]:",
+"        i += 1",
+"    else:",
+"        j += 1",
+"print('sort-merge result:', merge)"
+].join("\n");
+
+CODE["query-planning"]=[
+"# Selinger DP for join ordering and cardinality estimation",
+"import itertools, math",
+"",
+"# Relations: name -> cardinality",
+"rel = {'R': 1000, 'S': 500, 'T': 200}",
+"",
+"# Join selectivities",
+"sel = {('R','S'): 0.1, ('S','T'): 0.05, ('R','T'): 0.2}",
+"",
+"def join_sel(a, b):",
+"    key = (a, b) if (a, b) in sel else (b, a)",
+"    return sel.get(key, 1.0)",
+"",
+"def card(names):",
+"    c = 1",
+"    for n in names:",
+"        c *= rel[n]",
+"    for i in range(len(names)):",
+"        for j in range(i + 1, len(names)):",
+"            c *= join_sel(names[i], names[j])",
+"    return c",
+"",
+"# Selinger DP over subsets",
+"names = list(rel.keys())",
+"n = len(names)",
+"best = {}   # mask -> (cost, plan)",
+"for i, name in enumerate(names):",
+"    mask = 1 << i",
+"    best[mask] = (rel[name], name)",
+"",
+"for size in range(2, n + 1):",
+"    for combo in itertools.combinations(range(n), size):",
+"        mask = 0",
+"        for i in combo:",
+"            mask |= 1 << i",
+"        best_cost = float('inf')",
+"        best_plan = None",
+"        # split the subset into two non-empty halves",
+"        sub = (mask - 1) & mask",
+"        while sub > 0:",
+"            other = mask ^ sub",
+"            if other > 0 and sub in best and other in best:",
+"                c1, p1 = best[sub]",
+"                c2, p2 = best[other]",
+"                c = c1 + c2 + card(combo)",
+"                if c < best_cost:",
+"                    best_cost = c",
+"                    best_plan = (p1, p2)",
+"            sub = (sub - 1) & mask",
+"        best[mask] = (best_cost, best_plan)",
+"",
+"full = (1 << n) - 1",
+"print('best cost', best[full][0])",
+"print('best plan', best[full][1])",
+"",
+"# Cardinality estimation examples",
+"print()",
+"print('cardinality of R join S:', rel['R'] * rel['S'] * join_sel('R','S'))",
+"print('cardinality of R join S join T:', card(('R','S','T')))"
+].join("\n");
+
+CODE["index-structures"]=[
+"# B+ tree insert and search, hash index, bitmap index",
+"import bisect",
+"",
+"class BPlusTree:",
+"    def __init__(self, order=4):",
+"        self.order = order",
+"        self.leaves = [[]]   # list of sorted lists (one leaf for simplicity)",
+"    def insert(self, key):",
+"        leaf = self.leaves[0]",
+"        i = bisect.bisect_left(leaf, key)",
+"        if i < len(leaf) and leaf[i] == key:",
+"            return",
+"        leaf.insert(i, key)",
+"    def search(self, key):",
+"        leaf = self.leaves[0]",
+"        i = bisect.bisect_left(leaf, key)",
+"        return i < len(leaf) and leaf[i] == key",
+"    def range_scan(self, lo, hi):",
+"        leaf = self.leaves[0]",
+"        i = bisect.bisect_left(leaf, lo)",
+"        result = []",
+"        while i < len(leaf) and leaf[i] <= hi:",
+"            result.append(leaf[i])",
+"            i += 1",
+"        return result",
+"",
+"tree = BPlusTree()",
+"for k in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:",
+"    tree.insert(k)",
+"print('search 50:', tree.search(50))",
+"print('search 55:', tree.search(55))",
+"print('range [35, 75]:', tree.range_scan(35, 75))",
+"",
+"# Hash index",
+"class HashIndex:",
+"    def __init__(self, buckets=8):",
+"        self.buckets = [{} for _ in range(buckets)]",
+"    def _h(self, key):",
+"        return hash(key) % len(self.buckets)",
+"    def insert(self, key, rid):",
+"        self.buckets[self._h(key)][key] = rid",
+"    def lookup(self, key):",
+"        return self.buckets[self._h(key)].get(key)",
+"",
+"hi = HashIndex()",
+"for i, k in enumerate([10, 20, 30, 40, 50]):",
+"    hi.insert(k, i)",
+"print('hash lookup 30 ->', hi.lookup(30))",
+"print('hash lookup 35 ->', hi.lookup(35))",
+"",
+"# Bitmap index",
+"values = [1, 2, 1, 3, 2, 1, 3, 2, 1, 3]",
+"distinct = sorted(set(values))",
+"bitmaps = {v: [1 if x == v else 0 for x in values] for v in distinct}",
+"print('bitmaps:', bitmaps)",
+"# AND two bitmaps",
+"a = bitmaps[1]",
+"b = bitmaps[3]",
+"print('1 AND 3:', [x & y for x, y in zip(a, b)])",
+"print('1 OR 3:', [x | y for x, y in zip(a, b)])"
+].join("\n");
+
+CODE["concurrency-control"]=[
+"# 2PL schedule check, MVCC visibility, SSI conflict detection",
+"",
+"# Conflict serializability: precedence graph",
+"def build_precedence_graph(schedule):",
+"    # schedule: list of (tx, op, item)",
+"    graph = {}",
+"    for i, (t1, op1, item1) in enumerate(schedule):",
+"        for t2, op2, item2 in schedule[i+1:]:",
+"            if t1 == t2:",
+"                continue",
+"            if item1 == item2 and ('W' in (op1, op2)):",
+"                graph.setdefault(t1, set()).add(t2)",
+"    return graph",
+"",
+"def has_cycle(graph):",
+"    WHITE, GRAY, BLACK = 0, 1, 2",
+"    color = {}",
+"    def dfs(u):",
+"        color[u] = GRAY",
+"        for v in graph.get(u, []):",
+"            if color.get(v, WHITE) == GRAY:",
+"                return True",
+"            if color.get(v, WHITE) == WHITE and dfs(v):",
+"                return True",
+"        color[u] = BLACK",
+"        return False",
+"    for u in list(graph):",
+"        if color.get(u, WHITE) == WHITE and dfs(u):",
+"            return True",
+"    return False",
+"",
+"schedule = [('T1','R','A'), ('T1','W','A'), ('T2','R','A'), ('T1','C','-'), ('T2','W','B'), ('T2','C','-')]",
+"g = build_precedence_graph(schedule)",
+"print('precedence graph:', g)",
+"print('cycle?', has_cycle(g), '-> serializable' if not has_cycle(g) else '-> not serializable')",
+"",
+"# MVCC visibility",
+"versions = {",
+"    'A': [(1, 'v1', 'T0'), (2, 'v2', 'T1')],  # (commit_ts, value, writer)",
+"}",
+"def visible(versions, key, snapshot_ts):",
+"    best = None",
+"    for ts, val, writer in versions.get(key, []):",
+"        if ts <= snapshot_ts:",
+"            best = val",
+"    return best",
+"",
+"print('T2 snapshot 1 sees A =', visible(versions, 'A', 1))",
+"print('T2 snapshot 2 sees A =', visible(versions, 'A', 2))",
+"",
+"# SSI: rw-antidependency detection (illustrative)",
+"# A dangerous structure is: T1 --rw--> T2 --rw--> T3 with T3 committing first",
+"def ssi_check(conflicts):",
+"    # conflicts: list of (reader, writer) meaning reader read an old version",
+"    rw = {}",
+"    for r, w in conflicts:",
+"        rw.setdefault(r, set()).add(w)",
+"    for t1 in rw:",
+"        for t2 in rw[t1]:",
+"            for t3 in rw.get(t2, []):",
+"                if t3 != t1 and t3 in rw.get(t1, set()):",
+"                    return True",
+"    return False",
+"",
+"print('ssi conflict?', ssi_check([('T1','T2'), ('T2','T3'), ('T3','T1')]))"
+].join("\n");
+
+CODE["recovery-durability"]=[
+"# WAL records, ARIES phases and checkpoint",
+"",
+"log = [",
+"    {'lsn': 1, 'tx': 'T1', 'type': 'update', 'item': 'A', 'before': 0,  'after': 10, 'prev': 0},",
+"    {'lsn': 2, 'tx': 'T1', 'type': 'update', 'item': 'B', 'before': 0,  'after': 20, 'prev': 1},",
+"    {'lsn': 3, 'tx': 'T2', 'type': 'update', 'item': 'A', 'before': 10, 'after': 30, 'prev': 0},",
+"    {'lsn': 4, 'tx': '-',  'type': 'checkpoint', 'active': ['T1','T2']},",
+"    {'lsn': 5, 'tx': 'T1', 'type': 'commit'},",
+"    {'lsn': 6, 'tx': 'T2', 'type': 'commit'},",
+"    {'lsn': 7, 'tx': 'T3', 'type': 'update', 'item': 'C', 'before': 0,  'after': 40, 'prev': 0},",
+"]",
+"",
+"# ARIES analysis phase: rebuild the transaction table and the dirty page table",
+"tx_table = {}",
+"dirty = {}",
+"last_checkpoint = 0",
+"for rec in log:",
+"    if rec['type'] == 'checkpoint':",
+"        tx_table = {t: None for t in rec['active']}",
+"        dirty = {}",
+"        last_checkpoint = rec['lsn']",
+"    elif rec['type'] == 'update':",
+"        tx_table.setdefault(rec['tx'], None)",
+"        dirty.setdefault(rec['item'], rec['lsn'])",
+"    elif rec['type'] == 'commit':",
+"        tx_table.pop(rec['tx'], None)",
+"",
+"print('after analysis:')",
+"print('  active transactions:', list(tx_table.keys()))",
+"print('  dirty pages:', dirty)",
+"redo_start = min(dirty.values()) if dirty else last_checkpoint",
+"print('  redo start LSN:', redo_start)",
+"",
+"# Redo phase: apply all updates from redo_start forward",
+"db = {'A': 0, 'B': 0, 'C': 0}",
+"for rec in log:",
+"    if rec['lsn'] < redo_start:",
+"        continue",
+"    if rec['type'] == 'update':",
+"        db[rec['item']] = rec['after']",
+"print('after redo:', db)",
+"",
+"# Undo phase: roll back losers",
+"losers = list(tx_table.keys())",
+"print('losers:', losers)",
+"for rec in reversed(log):",
+"    if rec['type'] == 'update' and rec['tx'] in losers:",
+"        db[rec['item']] = rec['before']",
+"print('after undo:', db)",
+"",
+"print()",
+"print('final state is consistent with the committed transactions only')"
+].join("\n");
+
+CODE["storage-engines"]=[
+"# LSM flush, leveled compaction, Bloom filter",
+"import math, hashlib",
+"",
+"# Bloom filter",
+"class Bloom:",
+"    def __init__(self, n, fp_rate=0.01):",
+"        self.m = int(-n * math.log(fp_rate) / (math.log(2) ** 2))",
+"        self.k = max(1, int(round(self.m / n * math.log(2))))",
+"        self.bits = [0] * self.m",
+"    def _hashes(self, key):",
+"        h = hashlib.md5(str(key).encode()).hexdigest()",
+"        for i in range(self.k):",
+"            yield int(h[(i*4):(i*4+4)], 16) % self.m",
+"    def add(self, key):",
+"        for i in self._hashes(key):",
+"            self.bits[i] = 1",
+"    def __contains__(self, key):",
+"        return all(self.bits[i] for i in self._hashes(key))",
+"",
+"bf = Bloom(1000, 0.01)",
+"for k in range(1000):",
+"    bf.add(k)",
+"print('bits:', bf.m, 'hashes:', bf.k)",
+"print('contains 500:', 500 in bf)",
+"print('contains 5000:', 5000 in bf)",
+"",
+"# LSM levels and write amplification",
+"def write_amplification(levels, level_size_ratio=10, tiered=False):",
+"    if tiered:",
+"        # tiered compaction writes each level once",
+"        return levels",
+"    # leveled: each level rewrites the next level",
+"    return 2 * levels",
+"",
+"for levels in [3, 4, 5, 7]:",
+"    print(f'levels={levels}  leveled WA={write_amplification(levels)}  tiered WA={write_amplification(levels, tiered=True)}')",
+"",
+"# Read amplification for a point lookup",
+"def read_amp(levels, files_per_level=10):",
+"    return 1 + (levels - 1) * files_per_level",
+"",
+"print('read amp for 7 levels:', read_amp(7))",
+"print('with a Bloom filter per file, only the matching file is read')",
+"",
+"# Compaction size ratios",
+"level_sizes = []",
+"size = 100  # MB",
+"for i in range(7):",
+"    level_sizes.append(size)",
+"    size *= 10",
+"print('level sizes (MB):', level_sizes)",
+"print('total (MB):', sum(level_sizes))"
+].join("\n");
+
+CODE["columnar-storage"]=[
+"# Dictionary, RLE, delta, frame-of-reference, bit packing",
+"from collections import Counter",
+"import math",
+"",
+"# Dictionary encoding",
+"values = ['NEW','ACTIVE','ACTIVE','CLOSED','ACTIVE','NEW','ACTIVE','CLOSED','CLOSED','ACTIVE']",
+"dictionary = sorted(set(values))",
+"code = {v: i for i, v in enumerate(dictionary)}",
+"codes = [code[v] for v in values]",
+"bits_per_code = math.ceil(math.log2(len(dictionary))) if len(dictionary) > 1 else 1",
+"print('dictionary:', dictionary)",
+"print('codes:', codes)",
+"print('bits per code:', bits_per_code)",
+"print('original bytes:', sum(len(v) for v in values))",
+"print('encoded bytes:', math.ceil(len(codes) * bits_per_code / 8))",
+"",
+"# RLE",
+"def rle(values):",
+"    runs = []",
+"    for v in values:",
+"        if runs and runs[-1][0] == v:",
+"            runs[-1][1] += 1",
+"        else:",
+"            runs.append([v, 1])",
+"    return runs",
+"",
+"sizes = [100, 100, 100, 100, 200, 200, 200, 300, 300, 300]",
+"print('RLE:', rle(sizes))",
+"",
+"# Delta encoding",
+"ids = list(range(1, 11))",
+"deltas = [ids[0]] + [ids[i] - ids[i-1] for i in range(1, len(ids))]",
+"print('delta:', deltas)",
+"",
+"# Frame of reference",
+"def for_encode(values):",
+"    ref = min(values)",
+"    offsets = [v - ref for v in values]",
+"    bits = max(1, math.ceil(math.log2(max(offsets) + 1)))",
+"    return ref, offsets, bits",
+"",
+"ref, offsets, bits = for_encode(sizes)",
+"print('FOR ref:', ref, 'offsets:', offsets, 'bits:', bits)",
+"",
+"# Bit packing",
+"def bit_pack(values, bits):",
+"    packed = 0",
+"    for v in values:",
+"        packed = (packed << bits) | v",
+"    return packed",
+"",
+"packed = bit_pack(offsets, bits)",
+"print('packed:', bin(packed))",
+"print('unpacked:', [(packed >> (i * bits)) & ((1 << bits) - 1) for i in reversed(range(len(offsets)))])"
+].join("\n");
+
+CODE["partitioning-fault"]=[
+"# Consistent hashing, replication and erasure coding",
+"import hashlib, bisect",
+"",
+"class Ring:",
+"    def __init__(self, nodes, vnodes=100):",
+"        self.vnodes = vnodes",
+"        self.ring = []",
+"        for n in nodes:",
+"            for v in range(vnodes):",
+"                h = hashlib.md5(f'{n}:{v}'.encode()).hexdigest()",
+"                pos = int(h[:8], 16)",
+"                self.ring.append((pos, n))",
+"        self.ring.sort()",
+"        self.positions = [p for p, _ in self.ring]",
+"    def owner(self, key):",
+"        h = hashlib.md5(str(key).encode()).hexdigest()",
+"        pos = int(h[:8], 16)",
+"        i = bisect.bisect_left(self.positions, pos) % len(self.ring)",
+"        return self.ring[i][1]",
+"    def replicas(self, key, r):",
+"        h = hashlib.md5(str(key).encode()).hexdigest()",
+"        pos = int(h[:8], 16)",
+"        i = bisect.bisect_left(self.positions, pos)",
+"        result = []",
+"        seen = set()",
+"        j = i",
+"        while len(result) < r:",
+"            node = self.ring[j % len(self.ring)][1]",
+"            if node not in seen:",
+"                seen.add(node)",
+"                result.append(node)",
+"            j += 1",
+"        return result",
+"",
+"ring = Ring(['N1','N2','N3','N4'], vnodes=50)",
+"print('owner of key 1:', ring.owner(1))",
+"print('owner of key 2:', ring.owner(2))",
+"print('replicas of key 1 with R=3:', ring.replicas(1, 3))",
+"",
+"# Load balance with virtual nodes",
+"from collections import Counter",
+"load = Counter()",
+"for k in range(1000):",
+"    load[ring.owner(k)] += 1",
+"print('load distribution:', dict(load))",
+"",
+"# Erasure coding overhead",
+"def ec_overhead(k, m):",
+"    return (k + m) / k",
+"for k, m in [(10, 4), (8, 3), (20, 6), (100, 20)]:",
+"    print(f'k={k} m={m}  overhead={ec_overhead(k,m):.2f}x  tolerates {m} failures')",
+"",
+"# Replication overhead",
+"for r in [1, 2, 3, 5]:",
+"    print(f'replication R={r}  overhead={r}x  tolerates {r-1} failures')"
+].join("\n");
+
+CODE["distributed-queries"]=[
+"# Distributed join strategies and aggregation",
+"import math",
+"",
+"def broadcast_cost(small_rows, small_width, big_rows, big_width, nodes, network=1.0):",
+"    # send the small relation to every node",
+"    return small_rows * small_width * (nodes - 1) * network",
+"",
+"def shuffle_cost(rows, width, nodes, network=1.0):",
+"    # each row moves once across the network",
+"    return rows * width * (nodes - 1) / nodes * network",
+"",
+"def colocated_cost(rows, width, nodes, network=1.0):",
+"    # no data movement",
+"    return 0",
+"",
+"nodes = 8",
+"small_rows, small_width = 1_000, 100",
+"big_rows, big_width = 100_000, 100",
+"",
+"print('broadcast:', broadcast_cost(small_rows, small_width, big_rows, big_width, nodes))",
+"print('shuffle:  ', shuffle_cost(small_rows + big_rows, 100, nodes))",
+"print('colocated:', colocated_cost(big_rows, big_width, nodes))",
+"",
+"# Aggregation: partial + final",
+"def agg_cost(rows, nodes, combiner=True):",
+"    local = rows  # scan locally",
+"    shuffle = rows / (nodes if combiner else 1)",
+"    final = nodes",
+"    return local, shuffle, final",
+"",
+"for n in [1, 4, 8, 32]:",
+"    print(f'nodes={n:2d}  agg cost (local, shuffle, final) = {agg_cost(1_000_000, n)}')",
+"",
+"# Approximate distinct count with a sketch",
+"import hashlib",
+"def hll_estimate(values, bits=10):",
+"    m = 1 << bits",
+"    regs = [0] * m",
+"    for v in values:",
+"        h = int(hashlib.md5(str(v).encode()).hexdigest()[:16], 16)",
+"        idx = h >> (64 - bits)",
+"        rest = h << bits & ((1 << 64) - 1)",
+"        r = 0",
+"        while rest and (rest & 1) == 0:",
+"            r += 1",
+"            rest >>= 1",
+"        if r > regs[idx]:",
+"            regs[idx] = r",
+"    alpha = 0.7213 / (1 + 1.079 / m)",
+"    return alpha * m * m / sum(2 ** -r for r in regs)",
+"",
+"import random",
+"random.seed(0)",
+"data = [random.randint(0, 1_000_000) for _ in range(200_000)]",
+"print('exact distinct:', len(set(data)))",
+"print('hll estimate:  ', round(hll_estimate(data), 0))",
+"",
+"# Materialized view hit ratio",
+"def mv_benefit(query_cost, mv_cost, hit_ratio, maintenance_cost):",
+"    return hit_ratio * (query_cost - mv_cost) - (1 - hit_ratio) * maintenance_cost",
+"",
+"print('mv benefit:', mv_benefit(1000, 10, 0.9, 50))"
+].join("\n");
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+function parseRows(text){
+ var lines=text.trim().split(/\n/).map(function(l){return l.trim()}).filter(Boolean);
+ return lines.map(function(l){return l.split(/[\s,]+/).filter(Boolean)});
+}
+function parseNums(text){
+ return text.trim().split(/[\s,]+/).filter(Boolean).map(Number).filter(function(v){return Number.isFinite(v)});
+}
+function fmtNum(x,d){
+ if(d===undefined)d=6;
+ if(!Number.isFinite(x))return String(x);
+ if(x===0)return "0";
+ var a=Math.abs(x);
+ if(a>=1e7||a<1e-4)return x.toExponential(Math.max(0,d-1));
+ return String(parseFloat(x.toFixed(d)));
+}
+function padEnd(s,n){s=String(s);while(s.length<n)s+=" ";return s}
+function padStart(s,n){s=String(s);while(s.length<n)s=" "+s;return s}
+
+/* ============================================================
+   Labs
+   ============================================================ */
+
+function demoDbFoundations(text){
+ var nums=parseNums(text);
+ var pageSize=nums[0]||4096;
+ var recSize=nums[1]||100;
+ var seqRows=0, idxRows=0, hitRatio=0.9;
+ var rows=parseRows(text);
+ for(var i=0;i<rows.length;i++){
+  if(rows[i][0]==="seq")seqRows=Number(rows[i][1])||0;
+  if(rows[i][0]==="idx")idxRows=Number(rows[i][1])||0;
+  if(rows[i][0]==="hit")hitRatio=Number(rows[i][1])||0.9;
+ }
+ var out=[];
+ out.push("Page layout");
+ out.push("  page size:   "+pageSize+" bytes");
+ out.push("  record size: "+recSize+" bytes");
+ var perPage=Math.floor(pageSize/recSize);
+ out.push("  records per page: "+perPage);
+ out.push("");
+ out.push("Buffer pool");
+ out.push("  memory access ~ 100 ns");
+ out.push("  disk access   ~ 100,000 ns");
+ var memNs=100, diskNs=100000;
+ out.push("  hit ratio     average access time");
+ for(var h=0;h<=1.0001;h+=0.1){
+  var hr=Math.min(1,h);
+  var t=hr*memNs+(1-hr)*diskNs;
+  out.push("  "+padEnd(hr.toFixed(1),12)+fmtNum(t,0)+" ns");
+ }
+ out.push("");
+ out.push("Sequential scan vs index scan");
+ var pages=Math.ceil(seqRows/perPage)||1;
+ var seqCost=pages*1.0+seqRows*0.01;
+ out.push("  sequential scan of "+seqRows+" rows: "+fmtNum(seqCost,2)+" units");
+ out.push("  index scan of "+idxRows+" matching rows: "+fmtNum(3*4.0+idxRows*(4.0+0.01),2)+" units");
+ out.push("");
+ out.push("Plan tree");
+ out.push("  HashJoin");
+ out.push("    SeqScan on orders");
+ out.push("    Hash");
+ out.push("      IndexScan on customers using pk_customers");
+ out.push("");
+ out.push("A plan is chosen from the statistics and the cost model.");
+ out.push("A bad cardinality estimate gives a bad plan.");
+ return {encoded:out.join("\n"),decoded:"Records are stored in fixed-size pages. The buffer pool caches pages and the hit ratio determines the average access time. The optimizer picks a plan tree from the statistics and the cost model; a bad estimate produces a bad plan."};
+}
+
+function demoDbJoins(text){
+ var rows=parseRows(text);
+ var R=100, S=1000, sel=0.1;
+ for(var i=0;i<rows.length;i++){
+  if(rows[i][0]==="R")R=Number(rows[i][1])||R;
+  if(rows[i][0]==="S")S=Number(rows[i][1])||S;
+  if(rows[i][0]==="sel"||rows[i][0]==="key")sel=Number(rows[i][1])||sel;
+ }
+ var out=[];
+ out.push("Join inputs");
+ out.push("  |R| = "+R+" pages,  |S| = "+S+" pages");
+ out.push("  join selectivity = "+sel);
+ out.push("  estimated output = "+fmtNum(R*S*sel,0)+" tuples");
+ out.push("");
+ function nestedLoop(R,S,B){return Math.ceil(R/B)*S+R}
+ function hashJoin(R,S,mem){return Math.min(R,S)<=mem?R+S:3*(R+S)}
+ function sortMerge(R,S){
+  function sortCost(n){return 2*n*Math.ceil(Math.log2(Math.max(n,2)))}
+  return sortCost(R)+sortCost(S)+R+S;
+ }
+ out.push("Cost comparison (in page I/Os)");
+ out.push("  "+padEnd("algorithm",22)+padEnd("cost",12)+"when to use");
+ out.push("  "+padEnd("nested-loop (B=100)",22)+padEnd(fmtNum(nestedLoop(R,S,100),0),12)+"small outer, no memory");
+ out.push("  "+padEnd("index NL",22)+padEnd(fmtNum(R*4,0),12)+"selective index");
+ out.push("  "+padEnd("hash join (mem=1000)",22)+padEnd(fmtNum(hashJoin(R,S,1000),0),12)+"equijoin, one side fits");
+ out.push("  "+padEnd("sort-merge",22)+padEnd(fmtNum(sortMerge(R,S),0),12)+"inputs already sorted");
+ out.push("");
+ out.push("Rule of thumb:");
+ out.push("  hash join wins for large equijoins when one side fits in memory");
+ out.push("  sort-merge wins when the inputs are already sorted or the sort is reused");
+ out.push("  index NL wins for a small outer and a selective index on the inner");
+ out.push("  block nested-loop is the fallback for non-equijoins");
+ return {encoded:out.join("\n"),decoded:"Nested-loop join scans the inner relation once per outer tuple. Hash join reads each input once and probes a hash table. Sort-merge sorts both inputs and merges them. The optimizer picks the cheapest algorithm for the estimated cardinalities."};
+}
+
+function demoQueryPlanning(text){
+ var rows=parseRows(text);
+ var rel={};
+ var sel={};
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(r.length===2 && isNaN(Number(r[0])))rel[r[0]]=Number(r[1]);
+  else if(r.length===2 && /^\d+$/.test(r[1]))rel[r[0]]=Number(r[1]);
+  else if(r.length===2 && r[0].indexOf("-")>=0){
+   var parts=r[0].split("-");
+   sel[parts[0]+"-"+parts[1]]=Number(r[1]);
+  }
+ }
+ // Fallback parse
+ if(Object.keys(rel).length===0){
+  rel={R:1000,S:500,T:200};
+  sel={"R-S":0.1,"S-T":0.05,"R-T":0.2};
+ }
+ var names=Object.keys(rel);
+ function joinSel(a,b){
+  return sel[a+"-"+b]!==undefined?sel[a+"-"+b]:(sel[b+"-"+a]!==undefined?sel[b+"-"+a]:1.0);
+ }
+ function card(list){
+  var c=1;
+  for(var i=0;i<list.length;i++)c*=rel[list[i]];
+  for(var i=0;i<list.length;i++)for(var j=i+1;j<list.length;j++)c*=joinSel(list[i],list[j]);
+  return c;
+ }
+ var out=[];
+ out.push("Relations");
+ for(var n=0;n<names.length;n++){
+  out.push("  "+padEnd(names[n],6)+" cardinality "+rel[names[n]]);
+ }
+ out.push("");
+ out.push("Join selectivities");
+ var keys=Object.keys(sel);
+ for(var k=0;k<keys.length;k++){
+  out.push("  "+padEnd(keys[k],8)+" "+sel[keys[k]]);
+ }
+ out.push("");
+ out.push("Cardinality estimates");
+ for(var size=2;size<=names.length;size++){
+  // enumerate combinations
+  var combos=[];
+  (function pick(start, cur){
+   if(cur.length===size){combos.push(cur.slice()); return}
+   for(var i=start;i<names.length;i++){cur.push(names[i]); pick(i+1,cur); cur.pop()}
+  })(0,[]);
+  for(var c=0;c<combos.length;c++){
+   out.push("  "+padEnd(combos[c].join(" join "),24)+"  |result| = "+fmtNum(card(combos[c]),0));
+  }
+ }
+ out.push("");
+ out.push("Selinger DP");
+ out.push("  explores O(3^n) plans for n relations");
+ out.push("  prunes dominated plans");
+ out.push("  keeps interesting orders for later reuse");
+ out.push("");
+ out.push("Cardinality estimation");
+ out.push("  equality: 1 / distinct_values");
+ out.push("  range:    (high - low) / (max - min)");
+ out.push("  independence assumption: sel(A and B) = sel(A) * sel(B)");
+ out.push("  correlation breaks the independence assumption");
+ return {encoded:out.join("\n"),decoded:"The optimizer enumerates join orders with Selinger's dynamic program. It estimates the cardinality of each intermediate result from statistics and selectivities, then picks the plan with the lowest cost. The estimate is only as good as the statistics; correlation between columns breaks the independence assumption."};
+}
+
+function demoIndexStructures(text){
+ var blocks=text.split(/\n\s*\n/);
+ var out=[];
+ for(var b=0;b<blocks.length;b++){
+  var lines=blocks[b].trim().split(/\n/).filter(Boolean);
+  if(!lines.length)continue;
+  var head=lines[0].split(/\s+/);
+  if(head[0]==="B+"){
+   var keys=lines[1].split(/\s+/).map(Number);
+   var queries=lines[2]?lines[2].split(/\s+/).map(Number):[];
+   out.push("B+ tree");
+   out.push("  order = "+head[1]);
+   out.push("  keys: "+keys.join(", "));
+   out.push("  leaf level holds all keys, linked for range scans");
+   for(var q=0;q<queries.length;q++){
+    var found=keys.indexOf(queries[q])>=0;
+    out.push("  search "+queries[q]+": "+(found?"found":"not found"));
+   }
+   out.push("  range scan [35, 75]: "+keys.filter(function(k){return k>=35&&k<=75}).join(", "));
+   out.push("  search cost: O(log_m n) = about "+Math.ceil(Math.log(keys.length)/Math.log(Number(head[1])||4))+" page reads");
+   out.push("");
+  }
+  if(head[0]==="hash"){
+   var hkeys=lines[1].split(/\s+/).map(Number);
+   var hq=lines[2]?Number(lines[2]):null;
+   var buckets=Number(head[1]);
+   out.push("Hash index");
+   out.push("  buckets = "+buckets);
+   out.push("  keys: "+hkeys.join(", "));
+   for(var i=0;i<hkeys.length;i++){
+    out.push("  key "+padEnd(hkeys[i],5)+" bucket "+((hkeys[i]*2654435761)>>>0)%buckets);
+   }
+   if(hq!==null){
+    out.push("  lookup "+hq+": bucket "+((hq*2654435761)>>>0)%buckets);
+    out.push("  equality: O(1) expected. Range: not supported.");
+   }
+   out.push("");
+  }
+  if(head[0]==="bitmap"){
+   var vals=lines[1].split(/\s+/).map(Number);
+   var distinct=vals.slice().sort(function(a,b){return a-b}).filter(function(v,i,a){return i===0||v!==a[i-1]});
+   out.push("Bitmap index");
+   out.push("  values: "+vals.join(" "));
+   for(var d=0;d<distinct.length;d++){
+    var bits=vals.map(function(v){return v===distinct[d]?1:0});
+    out.push("  value "+padEnd(distinct[d],5)+" -> "+bits.join(" "));
+   }
+   var a=vals.map(function(v){return v===distinct[0]?1:0});
+   var c=vals.map(function(v){return v===distinct[distinct.length-1]?1:0});
+   out.push("  AND: "+a.map(function(x,i){return x&c[i]}).join(" "));
+   out.push("  OR:  "+a.map(function(x,i){return x|c[i]}).join(" "));
+   out.push("  bitwise operations are fast and vectorized");
+   out.push("");
+  }
+ }
+ out.push("Index selection");
+ out.push("  more indexes speed up reads and slow down writes");
+ out.push("  each index adds storage and maintenance cost");
+ out.push("  a covering index can answer a query without touching the table");
+ out.push("");
+ out.push("Learned index");
+ out.push("  a model predicts the position of a key in a sorted array");
+ out.push("  a small search corrects the prediction");
+ out.push("  good for read-only or read-mostly data");
+ return {encoded:out.join("\n"),decoded:"A B+ tree keeps keys sorted and the leaves linked, so range scans are efficient. A hash index gives O(1) equality but does not support ranges. A bitmap index uses one bit vector per distinct value, which is compact for low-cardinality columns."};
+}
+
+function demoConcurrencyControl(text){
+ var rows=parseRows(text);
+ var schedule=rows.map(function(r){return [r[0], r[1], r[2]||"-"]});
+ var out=[];
+ out.push("Schedule");
+ for(var i=0;i<schedule.length;i++){
+  out.push("  "+padEnd(schedule[i][0],5)+padEnd(schedule[i][1],4)+schedule[i][2]);
+ }
+ out.push("");
+ // Precedence graph
+ var graph={};
+ for(var i=0;i<schedule.length;i++){
+  for(var j=i+1;j<schedule.length;j++){
+   var t1=schedule[i][0], op1=schedule[i][1], it1=schedule[i][2];
+   var t2=schedule[j][0], op2=schedule[j][1], it2=schedule[j][2];
+   if(t1===t2)continue;
+   if(it1===it2 && (op1==="W"||op2==="W")){
+    if(!graph[t1])graph[t1]=[];
+    if(graph[t1].indexOf(t2)<0)graph[t1].push(t2);
+   }
+  }
+ }
+ out.push("Precedence graph (conflict serializability)");
+ var gk=Object.keys(graph);
+ if(!gk.length)out.push("  (no conflicts)");
+ for(var g=0;g<gk.length;g++){
+  out.push("  "+gk[g]+" -> "+graph[gk[g]].join(", "));
+ }
+ function hasCycle(gr){
+  var color={};
+  function dfs(u){
+   color[u]=1;
+   var nbrs=gr[u]||[];
+   for(var i=0;i<nbrs.length;i++){
+    if(color[nbrs[i]]===1)return true;
+    if(!color[nbrs[i]] && dfs(nbrs[i]))return true;
+   }
+   color[u]=2;
+   return false;
+  }
+  for(var u in gr){
+   if(!color[u] && dfs(u))return true;
+  }
+  return false;
+ }
+ var cyc=hasCycle(graph);
+ out.push("  cycle? "+cyc+"  -> "+(cyc?"not serializable":"serializable"));
+ out.push("");
+ out.push("Protocols");
+ out.push("  2PL:     lock, grow, shrink, serializable, deadlocks possible");
+ out.push("  TO:      timestamp order, no locks, aborts on conflict");
+ out.push("  OCC:     validate at commit, no locks, aborts on conflict");
+ out.push("  MVCC:    multiple versions, readers do not block writers");
+ out.push("  SSI:     MVCC + serializability check, aborts on dangerous structure");
+ out.push("");
+ out.push("MVCC visibility");
+ out.push("  T1 writes A at ts=1, T2 writes A at ts=2");
+ out.push("  a snapshot at ts=1 sees the first version");
+ out.push("  a snapshot at ts=2 sees the second version");
+ out.push("");
+ out.push("Write skew under snapshot isolation");
+ out.push("  T1 reads A and B, writes A");
+ out.push("  T2 reads A and B, writes B");
+ out.push("  the write sets are disjoint, so no write-write conflict");
+ out.push("  SSI detects the rw-antidependency and aborts one transaction");
+ return {encoded:out.join("\n"),decoded:"A schedule is conflict-serializable if its precedence graph is acyclic. 2PL uses locks and can deadlock. Timestamp ordering and OCC abort on conflict. MVCC keeps versions so readers do not block writers, but snapshot isolation allows write skew; SSI adds a serializability check."};
+}
+
+function demoRecoveryDurability(text){
+ var rows=parseRows(text);
+ var out=[];
+ out.push("Log records");
+ var log=[];
+ var lsn=0;
+ for(var i=0;i<rows.length;i++){
+  lsn++;
+  log.push({lsn:lsn, tx:rows[i][0], type:rows[i][1]==="W"?"update":(rows[i][1]==="C"?"commit":"other"), item:rows[i][2]||"-", after:rows[i][3]});
+ }
+ out.push("  "+padEnd("LSN",5)+padEnd("TX",6)+padEnd("type",10)+padEnd("item",6)+"after");
+ for(var l=0;l<log.length;l++){
+  out.push("  "+padEnd(log[l].lsn,5)+padEnd(log[l].tx,6)+padEnd(log[l].type,10)+padEnd(log[l].item,6)+(log[l].after||"-"));
+ }
+ out.push("");
+ out.push("ARIES phases");
+ out.push("  Analysis: rebuild the transaction table and the dirty page table");
+ var txTable={}, dirty={}, lastCheckpoint=0;
+ for(var a=0;a<log.length;a++){
+  var rec=log[a];
+  if(rec.type==="update"){
+   txTable[rec.tx]=true;
+   if(!dirty[rec.item])dirty[rec.item]=rec.lsn;
+  } else if(rec.type==="commit"){
+   delete txTable[rec.tx];
+  } else if(rec.type==="other"){
+   lastCheckpoint=rec.lsn;
+  }
+ }
+ out.push("    active transactions: "+Object.keys(txTable).join(", "));
+ out.push("    dirty pages: "+Object.keys(dirty).map(function(k){return k+"@"+dirty[k]}).join(", "));
+ var redoStart=Infinity;
+ for(var d in dirty)if(dirty[d]<redoStart)redoStart=dirty[d];
+ if(!isFinite(redoStart))redoStart=lastCheckpoint;
+ out.push("    redo start LSN: "+redoStart);
+ out.push("");
+ out.push("  Redo: apply all updates from the redo start point");
+ out.push("    redo repeats history, including uncommitted transactions");
+ out.push("");
+ out.push("  Undo: roll back the losers");
+ out.push("    walk back through the log and apply the before images");
+ out.push("    write a CLR for each undo");
+ out.push("");
+ out.push("Checkpoints");
+ out.push("  fuzzy checkpoint: record the state without flushing all pages");
+ out.push("  recovery time is bounded by the checkpoint interval");
+ out.push("");
+ out.push("Durability modes");
+ out.push("  synchronous commit: flush the log on commit");
+ out.push("  asynchronous commit: do not flush, risk of data loss");
+ out.push("  group commit: batch several commits into one flush");
+ return {encoded:out.join("\n"),decoded:"The log is the source of truth. WAL writes the log before the data page. ARIES recovery runs analysis, redo and undo. Redo repeats history; undo rolls back the losers. Checkpoints bound the recovery time."};
+}
+
+function demoStorageEngines(text){
+ var rows=parseRows(text);
+ var out=[];
+ var numRecords=1000, valueSize=100, bits=7, fpRate=0.01;
+ var strategy="leveled";
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(r.length>=3 && !isNaN(Number(r[0]))){numRecords=Number(r[0]); valueSize=Number(r[1]); bits=Number(r[2])}
+  if(r.length===1 && (r[0]==="leveled"||r[0]==="tiered"))strategy=r[0];
+  if(r.length===1 && !isNaN(Number(r[0])))fpRate=Number(r[0]);
+ }
+ out.push("LSM tree");
+ out.push("  records: "+numRecords);
+ out.push("  value size: "+valueSize+" bytes");
+ out.push("  memtable flush: sorted run of "+numRecords+" records");
+ out.push("");
+ out.push("Levels");
+ var sizes=[];
+ var size=numRecords*valueSize;
+ for(var l=0;l<bits;l++){
+  sizes.push(size);
+  size*=10;
+ }
+ out.push("  "+padEnd("level",8)+padEnd("size (bytes)",14)+"files");
+ for(var l2=0;l2<sizes.length;l2++){
+  out.push("  "+padEnd(l2,8)+padEnd(fmtNum(sizes[l2],0),14)+Math.ceil(sizes[l2]/(numRecords*valueSize)));
+ }
+ out.push("");
+ out.push("Compaction strategy: "+strategy);
+ if(strategy==="leveled"){
+  out.push("  each level has a size limit");
+  out.push("  merge overlapping files into the next level");
+  out.push("  lower read and space amplification, higher write amplification");
+  out.push("  write amplification ~ 2 * levels = "+(2*bits));
+ } else {
+  out.push("  group files into tiers");
+  out.push("  merge when a tier is full");
+  out.push("  lower write amplification, higher read and space amplification");
+  out.push("  write amplification ~ levels = "+bits);
+ }
+ out.push("");
+ out.push("Bloom filter");
+ var m=Math.ceil(-numRecords*Math.log(fpRate)/(Math.log(2)*Math.log(2)));
+ var k=Math.max(1, Math.round(m/numRecords*Math.log(2)));
+ out.push("  target false positive rate: "+fpRate);
+ out.push("  bits per key: "+Math.ceil(m/numRecords));
+ out.push("  hash functions: "+k);
+ out.push("  no false negatives");
+ out.push("");
+ out.push("Amplification");
+ out.push("  "+padEnd("engine",16)+padEnd("read",10)+padEnd("write",10)+"space");
+ out.push("  "+padEnd("B+ tree",16)+padEnd("O(log n)",10)+padEnd("1 page",10)+"~1.0");
+ out.push("  "+padEnd("LSM leveled",16)+padEnd("O(levels)",10)+padEnd("O(levels)",10)+">1.0");
+ out.push("  "+padEnd("LSM tiered",16)+padEnd("O(levels*files)",10)+padEnd("O(levels)",10)+">1.0");
+ out.push("  "+padEnd("CoW B-tree",16)+padEnd("O(log n)",10)+padEnd("O(log n)",10)+"~1.0");
+ out.push("");
+ out.push("RocksDB, LevelDB and Cassandra default to leveled compaction.");
+ out.push("Write-heavy workloads often benefit from tiered compaction.");
+ return {encoded:out.join("\n"),decoded:"An LSM tree buffers writes in memory and flushes sorted runs to disk. Leveled compaction keeps the levels small at the cost of write amplification. Tiered compaction reduces write amplification at the cost of read and space amplification. A Bloom filter per SSTable reduces read amplification with no false negatives."};
+}
+
+function demoColumnarStorage(text){
+ var blocks=text.split(/\n\s*\n/);
+ var out=[];
+ for(var b=0;b<blocks.length;b++){
+  var lines=blocks[b].trim().split(/\n/).filter(Boolean);
+  if(lines.length<2)continue;
+  var name=lines[0].trim();
+  var values=lines[1].trim().split(/\s+/);
+  out.push("Column: "+name);
+  out.push("  values: "+values.join(" "));
+  var isNum=values.every(function(v){return !isNaN(Number(v))});
+  if(!isNum){
+   // dictionary
+   var dict=values.slice().sort().filter(function(v,i,a){return i===0||v!==a[i-1]});
+   var codes=values.map(function(v){return dict.indexOf(v)});
+   var bits=Math.max(1, Math.ceil(Math.log2(Math.max(dict.length,2))));
+   out.push("  dictionary: "+dict.join(", "));
+   out.push("  codes: "+codes.join(" "));
+   out.push("  bits per code: "+bits);
+   out.push("  original bytes: "+values.reduce(function(s,v){return s+v.length},0));
+   out.push("  encoded bytes: "+Math.ceil(codes.length*bits/8));
+  } else {
+   var nums=values.map(Number);
+   // RLE
+   var runs=[];
+   for(var i=0;i<nums.length;i++){
+    if(runs.length && runs[runs.length-1][0]===nums[i])runs[runs.length-1][1]++;
+    else runs.push([nums[i],1]);
+   }
+   out.push("  RLE: "+runs.map(function(r){return r[0]+"x"+r[1]}).join(" "));
+   // Delta
+   var deltas=[nums[0]].concat(nums.slice(1).map(function(v,i){return v-nums[i]}));
+   out.push("  delta: "+deltas.join(" "));
+   // FOR
+   var ref=Math.min.apply(null,nums);
+   var offsets=nums.map(function(v){return v-ref});
+   var fbits=Math.max(1, Math.ceil(Math.log2(Math.max.apply(null,offsets)+1)));
+   out.push("  FOR ref: "+ref);
+   out.push("  offsets: "+offsets.join(" "));
+   out.push("  bits: "+fbits);
+   var originalBytes=nums.length*4;
+   var encodedBytes=Math.ceil((offsets.length*fbits)/8);
+   out.push("  original bytes (int32): "+originalBytes);
+   out.push("  encoded bytes: "+encodedBytes);
+   out.push("  compression ratio: "+fmtNum(originalBytes/Math.max(encodedBytes,1),2)+"x");
+  }
+  out.push("");
+ }
+ out.push("Parquet concepts");
+ out.push("  row group -> column chunk -> page");
+ out.push("  encodings: plain, dictionary, RLE, delta, bit-packed");
+ out.push("  compression per column chunk: Snappy, ZSTD, LZ4, gzip");
+ out.push("  statistics per page: min, max, null count");
+ out.push("  predicate pushdown using the statistics");
+ out.push("");
+ out.push("Vectorized execution processes a batch of values per operator call.");
+ out.push("Late materialization fetches only the surviving rows.");
+ return {encoded:out.join("\n"),decoded:"Dictionary encoding replaces each value with a small integer code. RLE replaces runs of the same value with (value, count). Delta encoding stores differences. Frame-of-reference subtracts the minimum and bit-packs the offsets. Columnar stores combine these encodings and read only the columns the query needs."};
+}
+
+function demoPartitioningFault(text){
+ var rows=parseRows(text);
+ var out=[];
+ var nodes=4, vnodes=50, keys=1000, R=3, ecK=10, ecM=4;
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(r[0]==="N")nodes=Number(r[1])||nodes;
+  if(r[0]==="V")vnodes=Number(r[1])||vnodes;
+  if(r[0]==="K")keys=Number(r[1])||keys;
+  if(r[0]==="R")R=Number(r[1])||R;
+  if(r[0]==="EC"){ecK=Number(r[1])||ecK; ecM=Number(r[2])||ecM;}
+ }
+ var names=[];
+ for(var n=0;n<nodes;n++)names.push("N"+(n+1));
+ // Build ring
+ function md5ish(x){
+  var h=0;
+  for(var i=0;i<x.length;i++)h=(Math.imul(h,31)+x.charCodeAt(i))>>>0;
+  return h;
+ }
+ var ring=[];
+ for(var i2=0;i2<names.length;i2++){
+  for(var v=0;v<vnodes;v++){
+   ring.push({pos:md5ish(names[i2]+":"+v), node:names[i2]});
+  }
+ }
+ ring.sort(function(a,b){return a.pos-b.pos});
+ var positions=ring.map(function(r){return r.pos});
+ function owner(key){
+  var pos=md5ish(String(key));
+  var lo=0, hi=positions.length;
+  while(lo<hi){var mid=(lo+hi)>>1; if(positions[mid]<pos)lo=mid+1; else hi=mid}
+  return ring[lo%ring.length].node;
+ }
+ out.push("Consistent hashing");
+ out.push("  nodes: "+names.join(", "));
+ out.push("  virtual nodes per physical node: "+vnodes);
+ out.push("  ring positions: "+ring.length);
+ out.push("  owner of key 1: "+owner(1));
+ out.push("  owner of key 2: "+owner(2));
+ out.push("  owner of key 3: "+owner(3));
+ out.push("");
+ // Load distribution
+ var load={};
+ for(var k=0;k<keys;k++){
+  var o=owner(k);
+  load[o]=(load[o]||0)+1;
+ }
+ out.push("Load distribution over "+keys+" keys");
+ var ideal=keys/nodes;
+ for(var n2=0;n2<names.length;n2++){
+  var c=load[names[n2]]||0;
+  out.push("  "+padEnd(names[n2],6)+padEnd(c,8)+"ideal "+fmtNum(ideal,0)+"  deviation "+fmtNum(100*(c-ideal)/ideal,1)+"%");
+ }
+ out.push("");
+ out.push("Replication");
+ out.push("  replication factor R = "+R);
+ out.push("  storage overhead: "+R+"x");
+ out.push("  tolerates "+(R-1)+" failures");
+ out.push("  quorum: read from Rr, write from Rw, Rr + Rw > R");
+ out.push("");
+ out.push("Erasure coding (Reed-Solomon)");
+ out.push("  k = "+ecK+" data blocks, m = "+ecM+" parity blocks");
+ out.push("  storage overhead: "+fmtNum((ecK+ecM)/ecK,2)+"x");
+ out.push("  tolerates "+ecM+" failures");
+ out.push("  lower storage than replication, higher CPU and network on recovery");
+ out.push("");
+ out.push("RAID");
+ out.push("  RAID 0: striping, no redundancy");
+ out.push("  RAID 1: mirroring, 2x overhead");
+ out.push("  RAID 5: striping + 1 parity block, tolerates 1 failure");
+ out.push("  RAID 6: striping + 2 parity blocks, tolerates 2 failures");
+ out.push("  RAID 10: mirror + stripe, 2x overhead");
+ out.push("");
+ out.push("Adding or removing a node moves about 1/N of the keys with consistent hashing.");
+ out.push("Modulo hashing would move almost every key.");
+ return {encoded:out.join("\n"),decoded:"Consistent hashing places each node and each key on a ring. The key is owned by the first node clockwise. Adding a node moves only the keys in its range. Virtual nodes improve the load balance. Replication and erasure coding provide fault tolerance; erasure coding reduces storage overhead at the cost of CPU and network on recovery."};
+}
+
+function demoDistributedQueries(text){
+ var rows=parseRows(text);
+ var out=[];
+ var nodes=8;
+ var cases=[];
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(r[0]==="nodes"){nodes=Number(r[1])||nodes; continue}
+  if(r.length>=3){
+   var strat=r[0];
+   var small=Number(r[1])||0;
+   var big=Number(r[2])||0;
+   cases.push({strategy:strat, small:small, big:big});
+  }
+ }
+ if(!cases.length){
+  cases=[{strategy:"broadcast",small:1000,big:100000},
+         {strategy:"shuffle",small:100000,big:100000},
+         {strategy:"colocated",small:100000,big:100000}];
+ }
+ out.push("Distributed join strategies (nodes = "+nodes+")");
+ out.push("  "+padEnd("strategy",14)+padEnd("small",10)+padEnd("big",10)+padEnd("network",10)+"when to use");
+ for(var c=0;c<cases.length;c++){
+  var cs=cases[c];
+  var net=0;
+  if(cs.strategy==="broadcast")net=cs.small*(nodes-1);
+  else if(cs.strategy==="shuffle")net=(cs.small+cs.big)*(nodes-1)/nodes;
+  else net=0;
+  var use="";
+  if(cs.strategy==="broadcast")use="one side small";
+  else if(cs.strategy==="shuffle")use="both sides large";
+  else use="shared partitioning";
+  out.push("  "+padEnd(cs.strategy,14)+padEnd(cs.small,10)+padEnd(cs.big,10)+padEnd(fmtNum(net,0),10)+use);
+ }
+ out.push("");
+ out.push("Aggregation");
+ out.push("  partial aggregation on each node");
+ out.push("  shuffle by the group key");
+ out.push("  final aggregation on the receiving nodes");
+ out.push("  combiners reduce the shuffle size");
+ out.push("  COUNT DISTINCT can use HyperLogLog for an approximate answer");
+ out.push("");
+ out.push("Approximate query processing");
+ out.push("  sample the data and answer the query on the sample");
+ out.push("  the answer has a confidence interval");
+ out.push("  sub-second answers on huge tables");
+ out.push("  hard for joins and rare groups");
+ out.push("");
+ out.push("Sketches in analytics");
+ out.push("  Count-Min Sketch: point frequencies and heavy hitters");
+ out.push("  HyperLogLog: approximate distinct count");
+ out.push("  t-digest: approximate quantiles");
+ out.push("  AMS: frequency moments");
+ out.push("  all are mergeable across nodes");
+ out.push("");
+ out.push("Materialized views");
+ out.push("  precompute the result of a query and store it");
+ out.push("  refresh on commit, on demand or periodically");
+ out.push("  incremental maintenance applies the delta");
+ out.push("  the optimizer can rewrite a query to use a materialized view");
+ out.push("");
+ out.push("Query caching");
+ out.push("  result cache, plan cache, semantic cache");
+ out.push("  invalidation on write to any referenced table");
+ out.push("  hit ratio depends on the query repetition");
+ out.push("");
+ out.push("The shuffle is the main bottleneck.");
+ out.push("Minimizing data movement is the primary optimization.");
+ return {encoded:out.join("\n"),decoded:"A broadcast join sends the small relation to every node. A shuffle join hashes both relations and moves rows by key. A co-located join needs no data movement. Aggregation uses partial and final steps. AQP answers queries on a sample, and sketches give approximate answers that merge across nodes."};
+}
+
+/* ============================================================
+   Dispatcher
+   ============================================================ */
+function runLab(l, initial){
+ var input=$("#labInput").value;
+ var res;
+ try{
+  if(!initial){$("#labEncoded").textContent="Running…";$("#labDecoded").textContent=""}
+  switch(l.demo){
+   case"db-foundations":res=demoDbFoundations(input);break;
+   case"db-joins":res=demoDbJoins(input);break;
+   case"query-planning":res=demoQueryPlanning(input);break;
+   case"index-structures":res=demoIndexStructures(input);break;
+   case"concurrency-control":res=demoConcurrencyControl(input);break;
+   case"recovery-durability":res=demoRecoveryDurability(input);break;
+   case"storage-engines":res=demoStorageEngines(input);break;
+   case"columnar-storage":res=demoColumnarStorage(input);break;
+   case"partitioning-fault":res=demoPartitioningFault(input);break;
+   case"distributed-queries":res=demoDistributedQueries(input);break;
+   default:throw Error("No interactive implementation is available for this lesson.");
+  }
+ }catch(e){
+  res={encoded:"Input or runtime error",decoded:String(e&&e.message||e)};
+ }
+ var el=$("#labEncoded");
+ if(res.html){el.innerHTML=res.html+"\n\n"+res.encoded}else{el.textContent=res.encoded}
+ $("#labDecoded").textContent=res.decoded;
+ if(!initial)toast("Lab complete");
+}
+
+/* ============================================================
+   State and shell
+   ============================================================ */
+var state={page:"home",current:null,completed:{},bookmarks:{},theme:"system",drafts:{}};
+function $(s){return document.querySelector(s)}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+var toastTimer=null;
+function toast(msg){
+ var el=$("#toast");
+ el.textContent=msg;
+ el.classList.add("show");
+ if(toastTimer)clearTimeout(toastTimer);
+ toastTimer=setTimeout(function(){el.classList.remove("show")},1900);
+}
+function save(){
+ try{
+  var data={
+   schemaVersion:1,
+   completed:Object.keys(state.completed),
+   bookmarks:Object.keys(state.bookmarks),
+   theme:state.theme,
+   current:state.current,
+   drafts:state.drafts
+  };
+  localStorage.setItem("az-db-lab-v1",JSON.stringify(data));
+ }catch(e){}
+}
+function load(){
+ try{
+  var raw=localStorage.getItem("az-db-lab-v1");
+  if(!raw)return;
+  var d=JSON.parse(raw);
+  if(!d||d.schemaVersion!==1)return;
+  (d.completed||[]).forEach(function(id){if(byId[id])state.completed[id]=true});
+  (d.bookmarks||[]).forEach(function(id){if(byId[id])state.bookmarks[id]=true});
+  if(["system","light","dark"].indexOf(d.theme)>=0)state.theme=d.theme;
+  if(d.current&&byId[d.current])state.current=d.current;
+  if(d.drafts&&typeof d.drafts==="object")state.drafts=d.drafts;
+ }catch(e){}
+}
+function applyTheme(){
+ var t=state.theme;
+ if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";
+ document.documentElement.dataset.theme=t;
+ var sel=$("#themeSelect");
+ if(sel)sel.value=state.theme;
+}
+function getChapter(id){
+ for(var i=0;i<CHAPTERS.length;i++)if(CHAPTERS[i].ids.indexOf(id)>=0)return CHAPTERS[i];
+ return CHAPTERS[0];
+}
+function completedCount(){return Object.keys(state.completed).length}
+function progress(){
+ var n=completedCount(),t=LESSONS.length;
+ $("#progressText").textContent=n+" / "+t;
+ $("#progressFill").style.width=(n/t*100)+"%";
+ $("#lessonCount").textContent=t+" lessons";
+ $("#catalogCount").textContent=CHAPTERS.length+" chapters · "+t+" lessons · "+LESSONS.filter(function(l){return l.demo&&l.demo!=="none"}).length+" labs";
+}
+function renderTree(){
+ var q=($("#searchInput").value||"").toLowerCase().trim();
+ var ch=$("#chapterFilter").value;
+ var root=$("#courseTree");
+ root.textContent="";
+ var any=false;
+ for(var ci=0;ci<CHAPTERS.length;ci++){
+  var c=CHAPTERS[ci];
+  if(ch!=="all"&&c.id!==ch)continue;
+  var rows=[];
+  for(var i=0;i<c.ids.length;i++){
+   var l=byId[c.ids[i]];
+   if(!l)continue;
+   if(q){
+    var hay=(l.title+" "+l.summary+" "+l.kind+" "+c.title).toLowerCase();
+    if(hay.indexOf(q)<0)continue;
+   }
+   rows.push(l);
+  }
+  if(!rows.length)continue;
+  any=true;
+  var group=document.createElement("section");
+  var label=document.createElement("div");label.className="group-label";
+  label.innerHTML="<span>"+esc(c.title)+"</span><span>"+rows.length+"</span>";
+  group.appendChild(label);
+  for(var i2=0;i2<rows.length;i2++){
+   var l2=rows[i2];
+   var b=document.createElement("button");b.type="button";
+   b.className="link"+(state.current===l2.id?" active":"");
+   b.dataset.lesson=l2.id;
+   var idx=LESSONS.indexOf(l2);
+   b.innerHTML='<span class="num">'+String(idx+1).padStart(2,"0")+'</span><span class="name">'+esc(l2.title)+'</span>'+(state.completed[l2.id]?'<span class="done">✓</span>':'');
+   group.appendChild(b);
+  }
+  root.appendChild(group);
+ }
+ if(!any)root.innerHTML='<p class="muted">No matching lessons. Try another search.</p>';
+ progress();
+}
+function listToHTML(a){
+ return '<ol class="steps">'+a.map(function(x){return "<li>"+esc(x)+"</li>"}).join("")+"</ol>";
+}
+function refsHTML(r){
+ if(!r||!r.length)return '<p class="muted">See the recommended textbooks and papers for a full treatment.</p>';
+ return '<div class="references">'+r.map(function(x){return '<a target="_blank" rel="noopener noreferrer" href="'+esc(x[1])+'">'+esc(x[0])+' ↗</a>'}).join("")+"</div>";
+}
+function codeText(l){
+ var c=CODE[l.id];
+ if(c)return c;
+ return "# CONCEPT OUTLINE, NOT EXECUTABLE PYTHON\n# Lesson: "+l.title+"\n\n# Core idea\n# "+String(l.summary||"").replace(/\n/g,"\n# ")+"\n\n# Pseudocode from the lesson\n"+String(l.pseudo||"").split("\n").map(function(x){return "# "+x}).join("\n")+"\n";
+}
+function statusClass(l){return /Runnable/.test(l.status)?"good":"warn"}
+
+function renderLesson(id){
+ var l=byId[id];
+ if(!l){renderHome();return}
+ state.page="lesson";state.current=id;
+ var c=getChapter(id);
+ var index=LESSONS.indexOf(l);
+ var next=LESSONS[(index+1)%LESSONS.length];
+ var hasDemo=l.demo&&l.demo!=="none";
+ var demoArea="";
+ if(hasDemo){
+  demoArea=
+   '<section class="panel"><div class="panel-head"><h2>'+esc(l.demoTitle||"Interactive teaching lab")+'</h2><p>Everything runs in your browser with plain JavaScript. This is a teaching implementation, not a production database engine.</p></div><div class="body"><div class="lab-top"><label for="labInput">Input</label><button class="btn" id="resetSample">Reset sample</button><button class="btn primary" id="runLab">Run lab</button></div><textarea class="lab-input" id="labInput" aria-label="Lab input">'+esc(l.sample||"")+'</textarea><div class="notice info"><strong>Format:</strong> see the sample for the expected format. Each lab parses the textarea with whitespace-separated fields. Blank lines separate blocks.</div><div class="lab-cols"><div><div class="label">Output</div><div class="lab-output" id="labEncoded">Run the lab to see output.</div></div><div><div class="label">Explanation</div><div class="lab-output" id="labDecoded">Step notes appear here.</div></div></div></div></section>';
+ }
+ var references=refsHTML(l.refs);
+ var code=state.drafts[id]!==undefined?state.drafts[id]:codeText(l);
+ var html="";
+ html+='<div class="breadcrumb">Databases &amp; Storage / '+esc(c.title)+"</div>";
+ html+='<header class="header">';
+ html+=' <div class="eyebrow">LESSON '+String(index+1).padStart(2,"0")+" · "+esc(l.kind)+"</div>";
+ html+=" <h1>"+esc(l.title)+"</h1>";
+ html+=" <p>"+esc(l.summary)+"</p>";
+ html+=' <div class="tags"><span class="tag">Level '+l.level+'</span><span class="tag '+statusClass(l)+'">'+esc(l.status)+'</span><span class="tag">'+esc(c.title.replace(/^\d+(\.\d+)?\.?\s*/,""))+"</span></div>";
+ html+=' <div class="header-actions">';
+ html+='  <button class="btn" id="bookmarkBtn">'+(state.bookmarks[id]?"★ Bookmarked":"☆ Bookmark")+"</button>";
+ html+='  <button class="btn primary" id="completeBtn">'+(state.completed[id]?"✓ Completed":"Mark complete")+"</button>";
+ html+=" </div>";
+ html+="</header>";
+ html+='<section class="panel"><div class="panel-head"><h2>1. Understand the idea</h2><p>Plain language and a mental picture</p></div><div class="body idea"><div><p>'+esc(l.summary)+'</p><p><strong>What problem it solves:</strong> '+esc(l.problem)+'</p><div class="takeaway"><strong>Takeaway:</strong> '+esc(l.output)+'</div></div><aside class="mental"><small>Mental picture</small><strong>'+esc(l.mental)+"</strong><p>"+esc(l.mentalText)+"</p></aside></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>2. Input and output</h2><p>Know what goes in and what comes out</p></div><div class="body two"><div class="mini"><h3>Input</h3><p>'+esc(l.input)+'</p></div><div class="mini"><h3>Output</h3><p>'+esc(l.output)+"</p></div></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>3. How it works</h2><p>Step by step, with the key rule that makes it correct</p></div><div class="body two"><div>'+listToHTML(l.steps)+'<div class="takeaway" style="margin-top:14px"><strong>Key rule:</strong> '+esc(l.invariant)+'</div></div><pre class="pseudo">'+esc(l.pseudo)+"</pre></div>";
+ html+='<div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Step</th><th>What happens</th><th>Why it matters</th></tr></thead><tbody>';
+ for(var ti=0;ti<l.trace.length;ti++){
+  var row=l.trace[ti];
+  html+="<tr>"+row.map(function(v){return "<td>"+esc(v)+"</td>"}).join("")+"</tr>";
+ }
+ html+="</tbody></table></div></section>";
+ html+=demoArea;
+ html+='<section class="panel"><div class="panel-head"><h2>4. Cost and behavior</h2><p>Costs depend on the data volume, the layout and the workload.</p></div><div class="body"><div class="tiles">';
+ var tileLabels=["Time","Space","Trade-off"];
+ for(var ci2=0;ci2<l.complexity.length;ci2++){
+  var x=l.complexity[ci2];
+  var short=x.split(" ").slice(0,2).join(" ");
+  html+='<div class="tile"><span>'+tileLabels[ci2]+"</span><strong>"+esc(short)+"</strong><small>"+esc(x)+"</small></div>";
+ }
+ html+='</div><div class="two" style="margin-top:12px"><div class="mini"><h3>Strengths</h3><p>'+esc(l.strength)+'</p></div><div class="mini"><h3>Limits</h3><p>'+esc(l.limits)+"</p></div></div></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>5. Code and usage</h2><p>Reference code is for learning. Real systems should use a vetted database or storage engine.</p></div><div class="code-head"><div><span class="tag">'+(CODE[id]?"Python example":"Concept outline, not executable")+'</span> <span class="tag">Editable</span></div><div class="header-actions" style="margin:0"><button class="btn" id="copyCode">Copy code</button><button class="btn" id="downloadCode">Download</button></div></div><textarea id="codeEditor" class="code-editor" spellcheck="false" aria-label="Editable Python code">'+esc(code)+'</textarea><div class="code-foot"><span>'+(CODE[id]?"Reference example. The in-page lab runs its own JavaScript implementation.":"Lesson-specific outline, not an implementation.")+'</span><span id="codeStatus">Local draft</span></div><div class="body"><div class="mini"><h3>Where it is used</h3><p>'+esc(l.uses)+'</p></div><div class="notice" style="margin-top:12px"><strong>Common pitfall:</strong> '+esc(l.pitfall)+"</div></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>6. Choices and alternatives</h2><p>Pick based on the workload, the cost model and the guarantees you need</p></div><div class="body two"><div class="mini"><h3>When to use this</h3><p>'+esc(l.strength)+'</p></div><div class="mini"><h3>When to use something else</h3><p>'+esc(l.limits)+"</p></div></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>7. Check yourself</h2><p>Try to answer before you open the explanation</p></div><div class="body"><details class="practice"><summary>'+esc(l.question)+"</summary><p>"+esc(l.answer)+"</p></details></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>8. References</h2><p>Standard references for this topic</p></div><div class="body">'+references+'<p class="muted" style="font-size:11.5px;margin-top:14px">The labs on this page are teaching implementations. For production work use a real database (PostgreSQL, MySQL, SQLite), a distributed store (Cassandra, HBase, RocksDB), a columnar format (Parquet, ORC) or an analytical engine (DuckDB, ClickHouse, Snowflake, BigQuery).</p></div></section>';
+ html+='<footer class="footer"><span>Az Databases &amp; Storage Systems Lab · local learning</span><span>Lesson '+(index+1)+" of "+LESSONS.length+" · Next: "+esc(next.title)+'</span><button class="btn" id="nextLesson">Next →</button></footer>';
+ $("#mainView").innerHTML=html;
+
+ $("#bookmarkBtn").onclick=function(){
+  if(state.bookmarks[id])delete state.bookmarks[id];else state.bookmarks[id]=true;
+  save();renderLesson(id);
+  toast(state.bookmarks[id]?"Bookmarked":"Bookmark removed");
+ };
+ $("#completeBtn").onclick=function(){
+  if(state.completed[id])delete state.completed[id];else state.completed[id]=true;
+  save();renderTree();renderLesson(id);
+  toast(state.completed[id]?"Lesson completed":"Completion removed");
+ };
+ $("#nextLesson").onclick=function(){openLesson(next.id)};
+ $("#copyCode").onclick=function(){
+  var v=$("#codeEditor").value;
+  function fallbackCopy(vv){
+   var ta=$("#codeEditor");ta.select();
+   try{document.execCommand("copy");toast("Code copied")}catch(e){toast("Copy failed")}
+  }
+  try{
+   if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(v).then(function(){toast("Code copied")},function(){fallbackCopy(v)});
+   } else fallbackCopy(v);
+  }catch(e){fallbackCopy(v)}
+ };
+ $("#downloadCode").onclick=function(){
+  downloadText(id+".py",$("#codeEditor").value,"text/x-python");
+ };
+ $("#codeEditor").addEventListener("input",function(){
+  state.drafts[id]=$("#codeEditor").value;
+  save();
+  $("#codeStatus").textContent="Draft saved locally";
+ });
+ if(hasDemo){
+  $("#runLab").onclick=function(){runLab(l)};
+  $("#resetSample").onclick=function(){
+   $("#labInput").value=l.sample||"";
+   $("#labEncoded").textContent="Run the lab to see output.";
+   $("#labDecoded").textContent="Step notes appear here.";
+  };
+  runLab(l,true);
+ }
+ renderTree();save();
+ if(location.hash!=="#"+id)history.replaceState(null,"","#"+id);
+}
+
+function renderHome(){
+ state.page="home";
+ var html="";
+ html+='<div class="home-hero"><div class="eyebrow">AZ · ENGINEERING TOOLBOOK</div><h1>Understand databases and storage systems from pages and B+ trees to LSM compaction and distributed queries.</h1><p>A hands-on course on database internals: storage foundations, joins, query planning, index structures, transaction concurrency, recovery, storage engines, columnar and compressed storage, partitioning and fault tolerance, and distributed analytics. Every lesson has a plain explanation and a runnable lab that runs entirely in the browser.</p><div class="header-actions" style="margin:0"><button class="btn primary" id="startFirst">Start at database foundations</button><button class="btn" id="resumeLesson">Continue lesson</button></div></div>';
+ html+='<div class="stats"><div class="stat"><strong>'+CHAPTERS.length+'</strong><span>chapters</span></div><div class="stat"><strong>'+LESSONS.length+'</strong><span>lessons</span></div><div class="stat"><strong>'+LESSONS.filter(function(l){return l.demo&&l.demo!=="none"}).length+'</strong><span>runnable labs</span></div><div class="stat"><strong>1</strong><span>standalone HTML file</span></div></div>';
+ html+='<section class="panel"><div class="panel-head"><h2>Honest scope</h2><p>One file covers the whole database and storage curriculum. Production systems are a separate engineering project.</p></div><div class="body two"><div class="mini"><h3>What runs here</h3><p>Page layout and buffer hit ratio, join cost comparison, Selinger DP for join ordering, B+ tree and bitmap index simulation, 2PL and MVCC and SSI conflict checks, WAL and ARIES recovery, LSM levels and Bloom filters, dictionary and RLE and delta and FOR encoding, consistent hashing and erasure coding, and distributed join strategies with aggregation and sketches.</p></div><div class="mini"><h3>What does not run here</h3><p>A full PostgreSQL or MySQL engine, a production LSM store, a distributed SQL engine, real crash recovery on disk, a full query optimizer, and industrial-grade compression codecs. Those need PostgreSQL, RocksDB, DuckDB, ClickHouse, Parquet tools or a distributed engine like Trino and Spark.</p></div></div></section>';
+ html+='<div class="panel"><div class="panel-head"><h2>Course map</h2><p>Pick a chapter. The path runs from storage foundations to distributed analytics.</p></div><div class="body"><div class="chapter-cards">';
+ for(var i=0;i<CHAPTERS.length;i++){
+  var c=CHAPTERS[i];
+  html+='<button class="chapter-card" data-chapter="'+c.id+'"><span class="num">CHAPTER '+String(i+1).padStart(2,"0")+" · "+c.ids.length+" LESSON"+(c.ids.length>1?"S":"")+"</span><strong>"+esc(c.title.replace(/^\d+(\.\d+)?\.?\s*/,""))+"</strong><p>"+esc(c.desc)+"</p></button>";
+ }
+ html+="</div></div></div>";
+ html+='<footer class="footer"><span>Az Databases &amp; Storage Systems Lab</span><span>Single file · no external runtime dependencies</span></footer>';
+ $("#mainView").innerHTML=html;
+ $("#startFirst").onclick=function(){openLesson("db-foundations")};
+ $("#resumeLesson").onclick=function(){
+  var id=state.current&&byId[state.current]?state.current:"db-foundations";
+  openLesson(id);
+ };
+ var cards=$("#mainView").querySelectorAll("[data-chapter]");
+ for(var ci=0;ci<cards.length;ci++){
+  cards[ci].onclick=(function(cid){
+   return function(){
+    for(var k=0;k<CHAPTERS.length;k++)if(CHAPTERS[k].id===cid)return openLesson(CHAPTERS[k].ids[0]);
+   };
+  })(cards[ci].dataset.chapter);
+ }
+}
+
+function renderProgressPage(){
+ state.page="progress";
+ var completedIds=Object.keys(state.completed);
+ var bookmarkIds=Object.keys(state.bookmarks);
+ var html="";
+ html+='<div class="breadcrumb">Databases Lab / Bookmarks &amp; progress</div><header class="header"><div class="eyebrow">LOCAL ONLY</div><h1>Bookmarks and progress</h1><p>Your progress stays in this browser. Export the JSON to move it or keep a backup.</p></header>';
+ html+='<section class="panel"><div class="panel-head"><h2>Completed lessons</h2></div><div class="body">';
+ if(completedIds.length){
+  html+='<div class="references">'+completedIds.map(function(id){return '<a href="#'+id+'" data-open="'+id+'">'+esc(byId[id].title)+"</a>"}).join("")+"</div>";
+ } else html+='<p class="muted">No lessons marked complete yet.</p>';
+ html+="</div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>Bookmarks</h2></div><div class="body">';
+ if(bookmarkIds.length){
+  html+='<div class="references">'+bookmarkIds.map(function(id){return '<a href="#'+id+'" data-open="'+id+'">'+esc(byId[id].title)+"</a>"}).join("")+"</div>";
+ } else html+='<p class="muted">No bookmarks yet.</p>';
+ html+="</div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>Progress data</h2></div><div class="body"><div class="header-actions" style="margin:0"><button class="btn primary" id="exportProgress">Export progress JSON</button><button class="btn" id="clearProgress">Clear completion marks</button></div><p class="muted" style="font-size:12.5px;margin-top:14px">Import accepts only known lesson IDs and a supported schema version.</p></div></section>';
+ $("#mainView").innerHTML=html;
+ var links=$("#mainView").querySelectorAll("[data-open]");
+ for(var i=0;i<links.length;i++){
+  links[i].onclick=(function(id){
+   return function(e){e.preventDefault();openLesson(id)};
+  })(links[i].dataset.open);
+ }
+ $("#exportProgress").onclick=exportProgress;
+ $("#clearProgress").onclick=function(){
+  if(confirm("Clear all completion marks?")){
+   state.completed={};
+   save();renderProgressPage();renderTree();
+   toast("Completion marks cleared");
+  }
+ };
+}
+
+function openLesson(id){
+ if(!byId[id])return;
+ renderLesson(id);
+ renderTree();
+ var mv=$("#mainView");
+ if(mv.focus)mv.focus({preventScroll:true});
+ window.scrollTo(0,0);
+}
+function downloadText(name,text,type){
+ type=type||"text/plain";
+ var blob=new Blob([text],{type:type});
+ var url=URL.createObjectURL(blob);
+ var a=document.createElement("a");
+ a.href=url;a.download=name;
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+ setTimeout(function(){URL.revokeObjectURL(url)},800);
+}
+function exportProgress(){
+ var data={
+  schemaVersion:1,
+  completed:Object.keys(state.completed),
+  bookmarks:Object.keys(state.bookmarks),
+  theme:state.theme,
+  current:state.current,
+  drafts:state.drafts
+ };
+ downloadText("az-db-lab-progress.json",JSON.stringify(data,null,2),"application/json");
+ toast("Progress exported");
+}
+function importProgressFile(file){
+ if(file.size>2000000){toast("Import rejected: file too large");return}
+ var r=new FileReader();
+ r.onload=function(){
+  try{
+   var d=JSON.parse(r.result);
+   if(!d||d.schemaVersion!==1)throw Error("bad schema");
+   if(!Array.isArray(d.completed)||!Array.isArray(d.bookmarks)||typeof d.drafts!=="object")throw Error("bad schema");
+   var bad=false;
+   d.completed.concat(d.bookmarks).forEach(function(id){if(typeof id!=="string"||!byId[id])bad=true});
+   if(bad)throw Error("unknown id");
+   state.completed={};
+   state.bookmarks={};
+   d.completed.forEach(function(id){state.completed[id]=true});
+   d.bookmarks.forEach(function(id){state.bookmarks[id]=true});
+   if(["system","light","dark"].indexOf(d.theme)>=0)state.theme=d.theme;
+   state.current=byId[d.current]?d.current:null;
+   state.drafts={};
+   Object.keys(d.drafts).forEach(function(k){
+    if(byId[k]&&typeof d.drafts[k]==="string"&&d.drafts[k].length<100000)state.drafts[k]=d.drafts[k];
+   });
+   applyTheme();save();renderTree();
+   if(state.current)openLesson(state.current);else renderHome();
+   toast("Progress imported");
+  }catch(e){toast("Import rejected: invalid progress data")}
+ };
+ r.readAsText(file);
+}
+
+function bindGlobal(){
+ $("#themeSelect").onchange=function(){state.theme=$("#themeSelect").value;applyTheme();save()};
+ $("#printBtn").onclick=function(){window.print()};
+ $("#exportBtn").onclick=exportProgress;
+ $("#importBtn").onclick=function(){$("#importFile").click()};
+ $("#importFile").onchange=function(e){
+  if(e.target.files&&e.target.files[0])importProgressFile(e.target.files[0]);
+  e.target.value="";
+ };
+ $("#searchInput").oninput=renderTree;
+ $("#chapterFilter").onchange=renderTree;
+ $("#homeLink").onclick=function(e){e.preventDefault();renderHome();history.replaceState(null,"","#home")};
+ $("#courseTree").onclick=function(e){
+  var b=e.target.closest?e.target.closest("[data-lesson]"):null;
+  if(b)openLesson(b.dataset.lesson);
+ };
+ var homeBtns=document.querySelectorAll('[data-page="home"]');
+ for(var i=0;i<homeBtns.length;i++)homeBtns[i].onclick=renderHome;
+ var progressBtns=document.querySelectorAll('[data-page="progress"]');
+ for(var j=0;j<progressBtns.length;j++)progressBtns[j].onclick=renderProgressPage;
+ document.addEventListener("keydown",function(e){
+  var tag=document.activeElement.tagName;
+  if(e.key==="/"&&["INPUT","TEXTAREA","SELECT"].indexOf(tag)<0){
+   e.preventDefault();$("#searchInput").focus();
+  }
+  if(e.key.toLowerCase()==="t"&&["INPUT","TEXTAREA","SELECT"].indexOf(tag)<0){
+   state.theme=state.theme==="dark"?"light":state.theme==="light"?"system":"dark";
+   applyTheme();save();
+  }
+ });
+}
+
+function init(){
+ try{
+  load();
+  applyTheme();
+  for(var ci=0;ci<CHAPTERS.length;ci++){
+   var op=document.createElement("option");
+   op.value=CHAPTERS[ci].id;
+   op.textContent=CHAPTERS[ci].title;
+   $("#chapterFilter").appendChild(op);
+  }
+  bindGlobal();
+  renderTree();
+  var hash=location.hash.replace(/^#/,"");
+  if(hash&&byId[hash])renderLesson(hash);
+  else if(state.current&&byId[state.current])renderLesson(state.current);
+  else renderHome();
+  progress();
+ }catch(e){
+  var mv=document.getElementById("mainView");
+  if(mv)mv.innerHTML='<div style="padding:20px;color:#ff929e"><h2>Initialization error</h2><pre>'+String(e&&e.stack||e)+"</pre></div>";
+  if(window.console)console.error(e);
+ }
+}
+init();
+</script></body></html>
