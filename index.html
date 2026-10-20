@@ -1,4 +1,11 @@
-<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><meta name="description" content="Az Databases &amp; Storage Systems Lab, a single-file course on database internals and storage engines"><title>Az Databases &amp; Storage Systems Lab</title>
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Az Databases &amp; Storage Systems Lab, a single-file course on database internals and storage engines">
+<title>Az Databases &amp; Storage Systems Lab</title>
 <style>
 :root{color-scheme:dark;--bg:#111722;--panel:#192230;--panel2:#202b3a;--panel3:#141c27;--line:#2c394b;--line2:#3b4b61;--text:#e8eef7;--muted:#a7b4c7;--subtle:#8190a5;--accent:#8ab4f8;--strong:#c9ddff;--good:#9ed7bd;--warn:#edc477;--bad:#ff929e;--shadow:none;--radius:13px}
 :root[data-theme=light]{color-scheme:light;--bg:#f4f6f8;--panel:#fff;--panel2:#f7f9fb;--panel3:#f0f4f8;--line:#dce2e9;--line2:#cbd4df;--text:#17212d;--muted:#596a7e;--subtle:#718197;--accent:#315fa2;--strong:#244a82;--good:#176b4c;--warn:#8c5c04;--bad:#b33143;--shadow:0 8px 24px rgba(20,35,50,.05)}
@@ -97,12 +104,13 @@ td{color:var(--muted)}
 .toast{position:fixed;z-index:99;bottom:20px;left:50%;transform:translate(-50%,10px);opacity:0;pointer-events:none;background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:11px 15px;box-shadow:var(--shadow);font-size:12px;transition:opacity .14s,transform .14s}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .footer{font-size:10.5px;color:var(--subtle);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:6px 2px 14px;align-items:center}
-.plot{width:100%;height:auto;display:block;background:var(--bg);border:1px solid var(--line);border-radius:8px;margin:6px 0}
 @media(max-width:1080px){.layout{grid-template-columns:240px minmax(360px,1fr)}main{padding:24px 22px 36px}}
 @media(max-width:840px){.topbar{height:auto;min-height:60px;flex-wrap:wrap;gap:10px;padding:10px 14px}.top-meta{display:none}.top-actions{margin-left:auto}.top-actions label{display:none}.layout{display:block}.sidebar{position:static;height:auto;max-height:none;border:0;border-bottom:1px solid var(--line);padding:14px}.tree{max-height:260px;overflow:auto}.side-foot{display:none}main{padding:20px 15px 32px}.idea{grid-template-columns:1fr}.mental{order:-1}.stats{grid-template-columns:1fr 1fr}.chapter-cards,.two,.lab-cols{grid-template-columns:1fr}}
 @media(max-width:520px){.brand small{display:none}.brand-mark{width:30px;height:30px}.brand strong{font-size:12px}.top-actions select{max-width:92px;padding:6px;font-size:10px}.top-actions .btn{padding:6px 8px;font-size:10px}.chapter-cards{grid-template-columns:1fr}.tiles{grid-template-columns:1fr}.home-hero{padding:20px}.home-hero h1{font-size:30px}.header h1{font-size:27px}.body,.panel-head{padding-left:15px;padding-right:15px}.footer{display:block}.footer span{display:block;margin-bottom:6px}}
 @media print{.topbar,.sidebar,.header-actions,.lab-top,.btn,.toast{display:none!important}.layout{display:block}main{padding:0;max-width:none}.panel,.home-hero{break-inside:avoid;box-shadow:none}body{background:#fff;color:#111}}
-</style></head><body>
+</style>
+</head>
+<body>
 
 <header class="topbar">
   <a class="brand" href="#home" id="homeLink"><span class="brand-mark">Az</span><span><strong>Az Databases &amp; Storage Systems Lab</strong><small>DATABASES · STORAGE ENGINES · TRANSACTIONS</small></span></a>
@@ -191,7 +199,7 @@ var RAW=[
  mentalText:"The storage engine reads and writes pages. The buffer pool decides which pages stay in memory. The executor walks the plan tree, pulling tuples from each operator.",
  problem:"How do you reason about database performance from the storage layer up to the query plan?",
  steps:["Fix the record layout and the page size.","Decide which pages are cached and which are read from disk.","Choose an access path: sequential scan, index scan or index-only scan.","Build a plan tree of physical operators.","Estimate the cost in I/Os and CPU.","Execute and measure."],
- pseudo:"Record layout:\n  fixed-length records:  record i at offset i * record_size\n  variable-length records:  slotted page with a slot directory\n\nPage:\n  fixed size, typically 4 KB or 8 KB\n  header: page id, LSN, free space pointers, slot count\n  slots: offsets to the records\n  free space: the gap between the slot directory and the records\n\nBuffer pool:\n  capacity of B frames\n  page table: page id -> frame\n  replacement policies: LRU, CLOCK, LRU-K, ARC\n  pin count: a pinned page cannot be evicted\n  dirty flag: a dirty page must be written back before eviction\n  hit ratio = hits / (hits + misses)\n  average access time = hit_ratio * memory_latency + (1 - hit_ratio) * disk_latency\n\nIndex:\n  maps a search key to a record id (page id, slot)\n  clustered index: the records are stored in index order\n  secondary index: the records are stored elsewhere\n  covering index: the index contains every column the query needs\n\nTransaction:\n  ACID: atomicity, consistency, isolation, durability\n  begin, read, write, commit, abort\n  the scheduler decides the order of conflicting operations\n\nQuery execution plan:\n  a tree of physical operators\n    SeqScan, IndexScan, IndexOnlyScan\n    NestedLoopJoin, HashJoin, MergeJoin\n    Sort, HashAggregate, GroupAggregate\n    Filter, Project, Limit\n  each operator has a cost and a cardinality estimate\n  the executor pulls tuples from the root (Volcano model)\n  or pushes batches between operators (vectorized model)\n\nCost model:\n  cost = page_reads * seq_page_cost\n       + random_page_reads * random_page_cost\n       + tuples_processed * cpu_tuple_cost\n       + ...\n  PostgreSQL defaults: seq_page_cost = 1.0, random_page_cost = 4.0\n\nExample plan:\n  HashJoin\n    SeqScan on orders\n    Hash\n      IndexScan on customers using pk_customers\n\nA plan is chosen by the optimizer from the statistics, the cost model",
+ pseudo:"Record layout:\n  fixed-length records:  record i at offset i * record_size\n  variable-length records:  slotted page with a slot directory\n\nPage:\n  fixed size, typically 4 KB or 8 KB\n  header: page id, LSN, free space pointers, slot count\n  slots: offsets to the records\n  free space: the gap between the slot directory and the records\n\nBuffer pool:\n  capacity of B frames\n  page table: page id -> frame\n  replacement policies: LRU, CLOCK, LRU-K, ARC\n  pin count: a pinned page cannot be evicted\n  dirty flag: a dirty page must be written back before eviction\n  hit ratio = hits / (hits + misses)\n  average access time = hit_ratio * memory_latency + (1 - hit_ratio) * disk_latency\n\nIndex:\n  maps a search key to a record id (page id, slot)\n  clustered index: the records are stored in index order\n  secondary index: the records are stored elsewhere\n  covering index: the index contains every column the query needs\n\nTransaction:\n  ACID: atomicity, consistency, isolation, durability\n  begin, read, write, commit, abort\n  the scheduler decides the order of conflicting operations\n\nQuery execution plan:\n  a tree of physical operators\n    SeqScan, IndexScan, IndexOnlyScan\n    NestedLoopJoin, HashJoin, MergeJoin\n    Sort, HashAggregate, GroupAggregate\n    Filter, Project, Limit\n  each operator has a cost and a cardinality estimate\n  the executor pulls tuples from the root (Volcano model)\n  or pushes batches between operators (vectorized model)\n\nCost model:\n  cost = page_reads * seq_page_cost\n       + random_page_reads * random_page_cost\n       + tuples_processed * cpu_tuple_cost\n       + ...\n  PostgreSQL defaults: seq_page_cost = 1.0, random_page_cost = 4.0\n\nExample plan:\n  HashJoin\n    SeqScan on orders\n    Hash\n      IndexScan on customers using pk_customers\n\nA plan is chosen by the optimizer from the statistics and the cost model.",
  invariant:"The optimizer picks the plan with the lowest estimated cost. A wrong cardinality estimate gives a wrong plan. The buffer pool decides whether the plan runs in memory or on disk.",
  uses:"Every relational database, key-value store, document store and analytical engine.",
  strength:"The layered model separates the storage, the buffer management, the indexing and the query execution. Each layer can be tuned independently.",
@@ -221,7 +229,7 @@ var RAW=[
  pitfall:"Choosing a nested-loop join when a hash join is available. The optimizer may do this if the cardinality estimate is wrong. Always check the actual row counts against the estimate.",
  question:"Why is hash join usually faster than nested-loop join for large equijoins?",
  answer:"Hash join reads each input once and probes a hash table, giving O(|R| + |S|) work. Nested-loop scans the inner relation once per outer tuple, giving O(|R| * |S|) work. For large inputs the difference is enormous.",
- demo:"db-joins",demoTitle:"Nested-loop, hash and sort-merge join cost",sample:"R 8 1000\nS 4 5000\nkey\n0.1",refs:[
+ demo:"db-joins",demoTitle:"Nested-loop, hash and sort-merge join cost",sample:"R 10000\nS 5000\nsel 0.1",refs:[
   ["Garcia-Molina, Ullman, Widom, Database Systems: The Complete Book, Chapters 15-16","https://www.pearson.com/en-us/subject-catalog/p/database-systems-the-complete-book/P200000003309"],
   ["Graefe, Query evaluation techniques for large databases, ACM Computing Surveys 1993","https://doi.org/10.1145/152610.152611"],
   ["Selinger et al., Access path selection in a relational database management system, SIGMOD 1979","https://doi.org/10.1145/582095.582099"],
@@ -309,7 +317,7 @@ var RAW=[
  pitfall:"Skipping the log flush on commit for performance. A crash then loses the last transactions, violating durability. Use group commit or asynchronous commit only when the application tolerates the loss.",
  question:"Why does ARIES redo uncommitted transactions during recovery?",
  answer:"Redo repeats history, so it redoes everything from the redo start point, including the changes of transactions that were uncommitted at the crash. The undo phase then rolls back those losers. Redoing them first makes the undo phase use the correct page state.",
- demo:"recovery-durability",demoTitle:"WAL records, ARIES phases and checkpoint",sample:"T1 W A 10\nT1 W B 20\nT2 W A 30\nCKPT\nT1 C\nT2 C\nT1 W C 40\nCRASH",refs:[
+ demo:"recovery-durability",demoTitle:"WAL records, ARIES phases and checkpoint",sample:"T1 W A 10\nT1 W B 20\nT2 W A 30\nCKPT\nT1 C\nT2 C\nT3 W C 40\nCRASH",refs:[
   ["Mohan et al., ARIES: a transaction recovery method supporting fine-granularity locking and partial rollbacks using write-ahead logging, ACM TODS 1992","https://doi.org/10.1145/128765.128770"],
   ["Gray, Reuter, Transaction Processing: Concepts and Techniques, Morgan Kaufmann 1993","https://www.sciencedirect.com/book/9781558601901/transaction-processing"],
   ["Haerder, Reuter, Principles of transaction-oriented database recovery, ACM Computing Surveys 1983","https://doi.org/10.1145/289.291"],
@@ -444,7 +452,6 @@ CODE["db-foundations"]=[
 "for m in [10, 100, 1000, 10000]:",
 "    print(f'index scan matching={m:6d}  cost={index_scan_cost(m):.2f}')",
 "",
-"# Crossover point",
 "print('index wins up to about', round((pages * 1.0) / (4.0 + 0.01)), 'matching rows')"
 ].join("\n");
 
@@ -453,18 +460,15 @@ CODE["db-joins"]=[
 "import math",
 "",
 "def nested_loop_cost(R, S, B=100):",
-"    # block nested loop, R is the outer",
 "    return math.ceil(R / B) * S + R",
 "",
 "def hash_join_cost(R, S, mem_pages=1000):",
-"    # grace hash join with one partition pass",
 "    if min(R, S) <= mem_pages:",
 "        return R + S",
-"    return 3 * (R + S)  # partition + build + probe",
+"    return 3 * (R + S)",
 "",
 "def sort_merge_cost(R, S):",
 "    def sort_cost(n):",
-"        # external merge sort with 2-way merge",
 "        return 2 * n * math.ceil(math.log2(max(n, 2)))",
 "    return sort_cost(R) + sort_cost(S) + R + S",
 "",
@@ -473,11 +477,9 @@ CODE["db-joins"]=[
 "for R, S in cases:",
 "    print(f'{R:>8} {S:>8} {nested_loop_cost(R,S):>10} {hash_join_cost(R,S):>10} {sort_merge_cost(R,S):>10}')",
 "",
-"# Hash join on two small tables",
 "R = [(1, 'a'), (2, 'b'), (3, 'c'), (4, 'd')]",
 "S = [(1, 'x'), (2, 'y'), (4, 'z'), (5, 'w')]",
 "",
-"# Build the hash table on S",
 "ht = {}",
 "for k, v in S:",
 "    ht.setdefault(k, []).append(v)",
@@ -486,37 +488,14 @@ CODE["db-joins"]=[
 "    if k in ht:",
 "        for w in ht[k]:",
 "            result.append((k, v, w))",
-"print('hash join result:', result)",
-"",
-"# Sort-merge join",
-"R_sorted = sorted(R)",
-"S_sorted = sorted(S)",
-"i = j = 0",
-"merge = []",
-"while i < len(R_sorted) and j < len(S_sorted):",
-"    if R_sorted[i][0] == S_sorted[j][0]:",
-"        k = R_sorted[i][0]",
-"        a = [r for r in R_sorted if r[0] == k]",
-"        b = [s for s in S_sorted if s[0] == k]",
-"        for r in a:",
-"            for s in b:",
-"                merge.append((k, r[1], s[1]))",
-"        i += len(a); j += len(b)",
-"    elif R_sorted[i][0] < S_sorted[j][0]:",
-"        i += 1",
-"    else:",
-"        j += 1",
-"print('sort-merge result:', merge)"
+"print('hash join result:', result)"
 ].join("\n");
 
 CODE["query-planning"]=[
 "# Selinger DP for join ordering and cardinality estimation",
-"import itertools, math",
+"import itertools",
 "",
-"# Relations: name -> cardinality",
 "rel = {'R': 1000, 'S': 500, 'T': 200}",
-"",
-"# Join selectivities",
 "sel = {('R','S'): 0.1, ('S','T'): 0.05, ('R','T'): 0.2}",
 "",
 "def join_sel(a, b):",
@@ -532,10 +511,9 @@ CODE["query-planning"]=[
 "            c *= join_sel(names[i], names[j])",
 "    return c",
 "",
-"# Selinger DP over subsets",
 "names = list(rel.keys())",
 "n = len(names)",
-"best = {}   # mask -> (cost, plan)",
+"best = {}",
 "for i, name in enumerate(names):",
 "    mask = 1 << i",
 "    best[mask] = (rel[name], name)",
@@ -547,7 +525,6 @@ CODE["query-planning"]=[
 "            mask |= 1 << i",
 "        best_cost = float('inf')",
 "        best_plan = None",
-"        # split the subset into two non-empty halves",
 "        sub = (mask - 1) & mask",
 "        while sub > 0:",
 "            other = mask ^ sub",
@@ -564,9 +541,6 @@ CODE["query-planning"]=[
 "full = (1 << n) - 1",
 "print('best cost', best[full][0])",
 "print('best plan', best[full][1])",
-"",
-"# Cardinality estimation examples",
-"print()",
 "print('cardinality of R join S:', rel['R'] * rel['S'] * join_sel('R','S'))",
 "print('cardinality of R join S join T:', card(('R','S','T')))"
 ].join("\n");
@@ -578,7 +552,7 @@ CODE["index-structures"]=[
 "class BPlusTree:",
 "    def __init__(self, order=4):",
 "        self.order = order",
-"        self.leaves = [[]]   # list of sorted lists (one leaf for simplicity)",
+"        self.leaves = [[]]",
 "    def insert(self, key):",
 "        leaf = self.leaves[0]",
 "        i = bisect.bisect_left(leaf, key)",
@@ -605,7 +579,6 @@ CODE["index-structures"]=[
 "print('search 55:', tree.search(55))",
 "print('range [35, 75]:', tree.range_scan(35, 75))",
 "",
-"# Hash index",
 "class HashIndex:",
 "    def __init__(self, buckets=8):",
 "        self.buckets = [{} for _ in range(buckets)]",
@@ -622,12 +595,10 @@ CODE["index-structures"]=[
 "print('hash lookup 30 ->', hi.lookup(30))",
 "print('hash lookup 35 ->', hi.lookup(35))",
 "",
-"# Bitmap index",
 "values = [1, 2, 1, 3, 2, 1, 3, 2, 1, 3]",
 "distinct = sorted(set(values))",
 "bitmaps = {v: [1 if x == v else 0 for x in values] for v in distinct}",
 "print('bitmaps:', bitmaps)",
-"# AND two bitmaps",
 "a = bitmaps[1]",
 "b = bitmaps[3]",
 "print('1 AND 3:', [x & y for x, y in zip(a, b)])",
@@ -637,9 +608,7 @@ CODE["index-structures"]=[
 CODE["concurrency-control"]=[
 "# 2PL schedule check, MVCC visibility, SSI conflict detection",
 "",
-"# Conflict serializability: precedence graph",
 "def build_precedence_graph(schedule):",
-"    # schedule: list of (tx, op, item)",
 "    graph = {}",
 "    for i, (t1, op1, item1) in enumerate(schedule):",
 "        for t2, op2, item2 in schedule[i+1:]:",
@@ -669,12 +638,9 @@ CODE["concurrency-control"]=[
 "schedule = [('T1','R','A'), ('T1','W','A'), ('T2','R','A'), ('T1','C','-'), ('T2','W','B'), ('T2','C','-')]",
 "g = build_precedence_graph(schedule)",
 "print('precedence graph:', g)",
-"print('cycle?', has_cycle(g), '-> serializable' if not has_cycle(g) else '-> not serializable')",
+"print('cycle?', has_cycle(g))",
 "",
-"# MVCC visibility",
-"versions = {",
-"    'A': [(1, 'v1', 'T0'), (2, 'v2', 'T1')],  # (commit_ts, value, writer)",
-"}",
+"versions = {'A': [(1, 'v1', 'T0'), (2, 'v2', 'T1')]}",
 "def visible(versions, key, snapshot_ts):",
 "    best = None",
 "    for ts, val, writer in versions.get(key, []):",
@@ -683,28 +649,11 @@ CODE["concurrency-control"]=[
 "    return best",
 "",
 "print('T2 snapshot 1 sees A =', visible(versions, 'A', 1))",
-"print('T2 snapshot 2 sees A =', visible(versions, 'A', 2))",
-"",
-"# SSI: rw-antidependency detection (illustrative)",
-"# A dangerous structure is: T1 --rw--> T2 --rw--> T3 with T3 committing first",
-"def ssi_check(conflicts):",
-"    # conflicts: list of (reader, writer) meaning reader read an old version",
-"    rw = {}",
-"    for r, w in conflicts:",
-"        rw.setdefault(r, set()).add(w)",
-"    for t1 in rw:",
-"        for t2 in rw[t1]:",
-"            for t3 in rw.get(t2, []):",
-"                if t3 != t1 and t3 in rw.get(t1, set()):",
-"                    return True",
-"    return False",
-"",
-"print('ssi conflict?', ssi_check([('T1','T2'), ('T2','T3'), ('T3','T1')]))"
+"print('T2 snapshot 2 sees A =', visible(versions, 'A', 2))"
 ].join("\n");
 
 CODE["recovery-durability"]=[
 "# WAL records, ARIES phases and checkpoint",
-"",
 "log = [",
 "    {'lsn': 1, 'tx': 'T1', 'type': 'update', 'item': 'A', 'before': 0,  'after': 10, 'prev': 0},",
 "    {'lsn': 2, 'tx': 'T1', 'type': 'update', 'item': 'B', 'before': 0,  'after': 20, 'prev': 1},",
@@ -715,7 +664,6 @@ CODE["recovery-durability"]=[
 "    {'lsn': 7, 'tx': 'T3', 'type': 'update', 'item': 'C', 'before': 0,  'after': 40, 'prev': 0},",
 "]",
 "",
-"# ARIES analysis phase: rebuild the transaction table and the dirty page table",
 "tx_table = {}",
 "dirty = {}",
 "last_checkpoint = 0",
@@ -736,7 +684,6 @@ CODE["recovery-durability"]=[
 "redo_start = min(dirty.values()) if dirty else last_checkpoint",
 "print('  redo start LSN:', redo_start)",
 "",
-"# Redo phase: apply all updates from redo_start forward",
 "db = {'A': 0, 'B': 0, 'C': 0}",
 "for rec in log:",
 "    if rec['lsn'] < redo_start:",
@@ -745,23 +692,18 @@ CODE["recovery-durability"]=[
 "        db[rec['item']] = rec['after']",
 "print('after redo:', db)",
 "",
-"# Undo phase: roll back losers",
 "losers = list(tx_table.keys())",
 "print('losers:', losers)",
 "for rec in reversed(log):",
 "    if rec['type'] == 'update' and rec['tx'] in losers:",
 "        db[rec['item']] = rec['before']",
-"print('after undo:', db)",
-"",
-"print()",
-"print('final state is consistent with the committed transactions only')"
+"print('after undo:', db)"
 ].join("\n");
 
 CODE["storage-engines"]=[
 "# LSM flush, leveled compaction, Bloom filter",
 "import math, hashlib",
 "",
-"# Bloom filter",
 "class Bloom:",
 "    def __init__(self, n, fp_rate=0.01):",
 "        self.m = int(-n * math.log(fp_rate) / (math.log(2) ** 2))",
@@ -784,40 +726,22 @@ CODE["storage-engines"]=[
 "print('contains 500:', 500 in bf)",
 "print('contains 5000:', 5000 in bf)",
 "",
-"# LSM levels and write amplification",
-"def write_amplification(levels, level_size_ratio=10, tiered=False):",
-"    if tiered:",
-"        # tiered compaction writes each level once",
-"        return levels",
-"    # leveled: each level rewrites the next level",
-"    return 2 * levels",
+"def write_amplification(levels, tiered=False):",
+"    return levels if tiered else 2 * levels",
 "",
 "for levels in [3, 4, 5, 7]:",
 "    print(f'levels={levels}  leveled WA={write_amplification(levels)}  tiered WA={write_amplification(levels, tiered=True)}')",
 "",
-"# Read amplification for a point lookup",
 "def read_amp(levels, files_per_level=10):",
 "    return 1 + (levels - 1) * files_per_level",
 "",
-"print('read amp for 7 levels:', read_amp(7))",
-"print('with a Bloom filter per file, only the matching file is read')",
-"",
-"# Compaction size ratios",
-"level_sizes = []",
-"size = 100  # MB",
-"for i in range(7):",
-"    level_sizes.append(size)",
-"    size *= 10",
-"print('level sizes (MB):', level_sizes)",
-"print('total (MB):', sum(level_sizes))"
+"print('read amp for 7 levels:', read_amp(7))"
 ].join("\n");
 
 CODE["columnar-storage"]=[
 "# Dictionary, RLE, delta, frame-of-reference, bit packing",
-"from collections import Counter",
 "import math",
 "",
-"# Dictionary encoding",
 "values = ['NEW','ACTIVE','ACTIVE','CLOSED','ACTIVE','NEW','ACTIVE','CLOSED','CLOSED','ACTIVE']",
 "dictionary = sorted(set(values))",
 "code = {v: i for i, v in enumerate(dictionary)}",
@@ -829,7 +753,6 @@ CODE["columnar-storage"]=[
 "print('original bytes:', sum(len(v) for v in values))",
 "print('encoded bytes:', math.ceil(len(codes) * bits_per_code / 8))",
 "",
-"# RLE",
 "def rle(values):",
 "    runs = []",
 "    for v in values:",
@@ -842,12 +765,10 @@ CODE["columnar-storage"]=[
 "sizes = [100, 100, 100, 100, 200, 200, 200, 300, 300, 300]",
 "print('RLE:', rle(sizes))",
 "",
-"# Delta encoding",
 "ids = list(range(1, 11))",
 "deltas = [ids[0]] + [ids[i] - ids[i-1] for i in range(1, len(ids))]",
 "print('delta:', deltas)",
 "",
-"# Frame of reference",
 "def for_encode(values):",
 "    ref = min(values)",
 "    offsets = [v - ref for v in values]",
@@ -857,7 +778,6 @@ CODE["columnar-storage"]=[
 "ref, offsets, bits = for_encode(sizes)",
 "print('FOR ref:', ref, 'offsets:', offsets, 'bits:', bits)",
 "",
-"# Bit packing",
 "def bit_pack(values, bits):",
 "    packed = 0",
 "    for v in values:",
@@ -909,87 +829,65 @@ CODE["partitioning-fault"]=[
 "print('owner of key 2:', ring.owner(2))",
 "print('replicas of key 1 with R=3:', ring.replicas(1, 3))",
 "",
-"# Load balance with virtual nodes",
 "from collections import Counter",
 "load = Counter()",
 "for k in range(1000):",
 "    load[ring.owner(k)] += 1",
 "print('load distribution:', dict(load))",
 "",
-"# Erasure coding overhead",
 "def ec_overhead(k, m):",
 "    return (k + m) / k",
 "for k, m in [(10, 4), (8, 3), (20, 6), (100, 20)]:",
-"    print(f'k={k} m={m}  overhead={ec_overhead(k,m):.2f}x  tolerates {m} failures')",
-"",
-"# Replication overhead",
-"for r in [1, 2, 3, 5]:",
-"    print(f'replication R={r}  overhead={r}x  tolerates {r-1} failures')"
+"    print(f'k={k} m={m}  overhead={ec_overhead(k,m):.2f}x  tolerates {m} failures')"
 ].join("\n");
 
 CODE["distributed-queries"]=[
 "# Distributed join strategies and aggregation",
 "import math",
 "",
-"def broadcast_cost(small_rows, small_width, big_rows, big_width, nodes, network=1.0):",
-"    # send the small relation to every node",
-"    return small_rows * small_width * (nodes - 1) * network",
+"def broadcast_cost(small_rows, nodes):",
+"    return small_rows * (nodes - 1)",
 "",
-"def shuffle_cost(rows, width, nodes, network=1.0):",
-"    # each row moves once across the network",
-"    return rows * width * (nodes - 1) / nodes * network",
-"",
-"def colocated_cost(rows, width, nodes, network=1.0):",
-"    # no data movement",
-"    return 0",
+"def shuffle_cost(rows, nodes):",
+"    return rows * (nodes - 1) / nodes",
 "",
 "nodes = 8",
-"small_rows, small_width = 1_000, 100",
-"big_rows, big_width = 100_000, 100",
+"small_rows = 1_000",
+"big_rows = 100_000",
 "",
-"print('broadcast:', broadcast_cost(small_rows, small_width, big_rows, big_width, nodes))",
-"print('shuffle:  ', shuffle_cost(small_rows + big_rows, 100, nodes))",
-"print('colocated:', colocated_cost(big_rows, big_width, nodes))",
+"print('broadcast:', broadcast_cost(small_rows, nodes))",
+"print('shuffle:  ', shuffle_cost(small_rows + big_rows, nodes))",
 "",
-"# Aggregation: partial + final",
-"def agg_cost(rows, nodes, combiner=True):",
-"    local = rows  # scan locally",
-"    shuffle = rows / (nodes if combiner else 1)",
+"def agg_cost(rows, nodes):",
+"    local = rows",
+"    shuffle = rows / nodes",
 "    final = nodes",
 "    return local, shuffle, final",
 "",
 "for n in [1, 4, 8, 32]:",
 "    print(f'nodes={n:2d}  agg cost (local, shuffle, final) = {agg_cost(1_000_000, n)}')",
 "",
-"# Approximate distinct count with a sketch",
-"import hashlib",
+"import hashlib, random",
 "def hll_estimate(values, bits=10):",
 "    m = 1 << bits",
 "    regs = [0] * m",
 "    for v in values:",
-"        h = int(hashlib.md5(str(v).encode()).hexdigest()[:16], 16)",
-"        idx = h >> (64 - bits)",
-"        rest = h << bits & ((1 << 64) - 1)",
-"        r = 0",
+"        h = int(hashlib.md5(str(v).encode()).hexdigest()[:8], 16)",
+"        idx = h >> (32 - bits)",
+"        rest = h & ((1 << (32 - bits)) - 1)",
+"        rank = 1",
 "        while rest and (rest & 1) == 0:",
-"            r += 1",
+"            rank += 1",
 "            rest >>= 1",
-"        if r > regs[idx]:",
-"            regs[idx] = r",
+"        if rank > regs[idx]:",
+"            regs[idx] = rank",
 "    alpha = 0.7213 / (1 + 1.079 / m)",
-"    return alpha * m * m / sum(2 ** -r for r in regs)",
+"    return alpha * m * m / sum(2.0 ** -r for r in regs)",
 "",
-"import random",
 "random.seed(0)",
 "data = [random.randint(0, 1_000_000) for _ in range(200_000)]",
 "print('exact distinct:', len(set(data)))",
-"print('hll estimate:  ', round(hll_estimate(data), 0))",
-"",
-"# Materialized view hit ratio",
-"def mv_benefit(query_cost, mv_cost, hit_ratio, maintenance_cost):",
-"    return hit_ratio * (query_cost - mv_cost) - (1 - hit_ratio) * maintenance_cost",
-"",
-"print('mv benefit:', mv_benefit(1000, 10, 0.9, 50))"
+"print('hll estimate:  ', round(hll_estimate(data), 0))"
 ].join("\n");
 
 /* ============================================================
@@ -1012,6 +910,12 @@ function fmtNum(x,d){
 }
 function padEnd(s,n){s=String(s);while(s.length<n)s+=" ";return s}
 function padStart(s,n){s=String(s);while(s.length<n)s=" "+s;return s}
+function hash32(s){
+ s=String(s);
+ var h=0;
+ for(var i=0;i<s.length;i++)h=(Math.imul(h,31)+s.charCodeAt(i))>>>0;
+ return h;
+}
 
 /* ============================================================
    Labs
@@ -1021,6 +925,7 @@ function demoDbFoundations(text){
  var nums=parseNums(text);
  var pageSize=nums[0]||4096;
  var recSize=nums[1]||100;
+ if(pageSize<16)pageSize*=1024;  // small values mean KB
  var seqRows=0, idxRows=0, hitRatio=0.9;
  var rows=parseRows(text);
  for(var i=0;i<rows.length;i++){
@@ -1032,7 +937,7 @@ function demoDbFoundations(text){
  out.push("Page layout");
  out.push("  page size:   "+pageSize+" bytes");
  out.push("  record size: "+recSize+" bytes");
- var perPage=Math.floor(pageSize/recSize);
+ var perPage=Math.max(1, Math.floor(pageSize/recSize));
  out.push("  records per page: "+perPage);
  out.push("");
  out.push("Buffer pool");
@@ -1047,7 +952,7 @@ function demoDbFoundations(text){
  }
  out.push("");
  out.push("Sequential scan vs index scan");
- var pages=Math.ceil(seqRows/perPage)||1;
+ var pages=Math.max(1, Math.ceil(seqRows/perPage));
  var seqCost=pages*1.0+seqRows*0.01;
  out.push("  sequential scan of "+seqRows+" rows: "+fmtNum(seqCost,2)+" units");
  out.push("  index scan of "+idxRows+" matching rows: "+fmtNum(3*4.0+idxRows*(4.0+0.01),2)+" units");
@@ -1065,11 +970,11 @@ function demoDbFoundations(text){
 
 function demoDbJoins(text){
  var rows=parseRows(text);
- var R=100, S=1000, sel=0.1;
+ var R=10000, S=5000, sel=0.1;
  for(var i=0;i<rows.length;i++){
   if(rows[i][0]==="R")R=Number(rows[i][1])||R;
   if(rows[i][0]==="S")S=Number(rows[i][1])||S;
-  if(rows[i][0]==="sel"||rows[i][0]==="key")sel=Number(rows[i][1])||sel;
+  if(rows[i][0]==="sel")sel=Number(rows[i][1])||sel;
  }
  var out=[];
  out.push("Join inputs");
@@ -1104,14 +1009,14 @@ function demoQueryPlanning(text){
  var sel={};
  for(var i=0;i<rows.length;i++){
   var r=rows[i];
-  if(r.length===2 && isNaN(Number(r[0])))rel[r[0]]=Number(r[1]);
-  else if(r.length===2 && /^\d+$/.test(r[1]))rel[r[0]]=Number(r[1]);
-  else if(r.length===2 && r[0].indexOf("-")>=0){
+  if(r.length!==2)continue;
+  if(r[0].indexOf("-")>=0){
    var parts=r[0].split("-");
    sel[parts[0]+"-"+parts[1]]=Number(r[1]);
+  } else if(isNaN(Number(r[0])) && !isNaN(Number(r[1]))){
+   rel[r[0]]=Number(r[1]);
   }
  }
- // Fallback parse
  if(Object.keys(rel).length===0){
   rel={R:1000,S:500,T:200};
   sel={"R-S":0.1,"S-T":0.05,"R-T":0.2};
@@ -1140,7 +1045,6 @@ function demoQueryPlanning(text){
  out.push("");
  out.push("Cardinality estimates");
  for(var size=2;size<=names.length;size++){
-  // enumerate combinations
   var combos=[];
   (function pick(start, cur){
    if(cur.length===size){combos.push(cur.slice()); return}
@@ -1182,22 +1086,28 @@ function demoIndexStructures(text){
     var found=keys.indexOf(queries[q])>=0;
     out.push("  search "+queries[q]+": "+(found?"found":"not found"));
    }
-   out.push("  range scan [35, 75]: "+keys.filter(function(k){return k>=35&&k<=75}).join(", "));
-   out.push("  search cost: O(log_m n) = about "+Math.ceil(Math.log(keys.length)/Math.log(Number(head[1])||4))+" page reads");
+   if(queries.length>=2){
+    var lo=Math.min(queries[0],queries[1]);
+    var hi=Math.max(queries[0],queries[1]);
+    out.push("  range scan ["+lo+", "+hi+"]: "+keys.filter(function(k){return k>=lo&&k<=hi}).join(", "));
+   } else if(queries.length===1){
+    out.push("  range scan ["+queries[0]+", "+queries[0]+"]: "+keys.filter(function(k){return k===queries[0]}).join(", "));
+   }
+   out.push("  search cost: O(log_m n) = about "+Math.ceil(Math.log(Math.max(keys.length,2))/Math.log(Number(head[1])||4))+" page reads");
    out.push("");
   }
   if(head[0]==="hash"){
    var hkeys=lines[1].split(/\s+/).map(Number);
    var hq=lines[2]?Number(lines[2]):null;
-   var buckets=Number(head[1]);
+   var buckets=Number(head[1])||8;
    out.push("Hash index");
    out.push("  buckets = "+buckets);
    out.push("  keys: "+hkeys.join(", "));
    for(var i=0;i<hkeys.length;i++){
-    out.push("  key "+padEnd(hkeys[i],5)+" bucket "+((hkeys[i]*2654435761)>>>0)%buckets);
+    out.push("  key "+padEnd(hkeys[i],5)+" bucket "+(hash32(String(hkeys[i]))%buckets));
    }
-   if(hq!==null){
-    out.push("  lookup "+hq+": bucket "+((hq*2654435761)>>>0)%buckets);
+   if(hq!==null&&!isNaN(hq)){
+    out.push("  lookup "+hq+": bucket "+(hash32(String(hq))%buckets));
     out.push("  equality: O(1) expected. Range: not supported.");
    }
    out.push("");
@@ -1240,7 +1150,6 @@ function demoConcurrencyControl(text){
   out.push("  "+padEnd(schedule[i][0],5)+padEnd(schedule[i][1],4)+schedule[i][2]);
  }
  out.push("");
- // Precedence graph
  var graph={};
  for(var i=0;i<schedule.length;i++){
   for(var j=i+1;j<schedule.length;j++){
@@ -1305,13 +1214,28 @@ function demoRecoveryDurability(text){
  out.push("Log records");
  var log=[];
  var lsn=0;
+ var currentValues={};
  for(var i=0;i<rows.length;i++){
   lsn++;
-  log.push({lsn:lsn, tx:rows[i][0], type:rows[i][1]==="W"?"update":(rows[i][1]==="C"?"commit":"other"), item:rows[i][2]||"-", after:rows[i][3]});
+  var tx=rows[i][0];
+  var op=rows[i][1];
+  var item=rows[i][2];
+  var afterVal=rows[i][3]!==undefined?Number(rows[i][3]):undefined;
+  var type, before;
+  if(op==="W"){
+   type="update";
+   before=currentValues[item]||0;
+   currentValues[item]=afterVal;
+  } else if(op==="C"){
+   type="commit";
+  } else {
+   type="other";
+  }
+  log.push({lsn:lsn, tx:tx, type:type, item:item||"-", before:before, after:afterVal});
  }
  out.push("  "+padEnd("LSN",5)+padEnd("TX",6)+padEnd("type",10)+padEnd("item",6)+"after");
  for(var l=0;l<log.length;l++){
-  out.push("  "+padEnd(log[l].lsn,5)+padEnd(log[l].tx,6)+padEnd(log[l].type,10)+padEnd(log[l].item,6)+(log[l].after||"-"));
+  out.push("  "+padEnd(log[l].lsn,5)+padEnd(log[l].tx,6)+padEnd(log[l].type,10)+padEnd(log[l].item,6)+(log[l].after!==undefined?log[l].after:"-"));
  }
  out.push("");
  out.push("ARIES phases");
@@ -1324,23 +1248,37 @@ function demoRecoveryDurability(text){
    if(!dirty[rec.item])dirty[rec.item]=rec.lsn;
   } else if(rec.type==="commit"){
    delete txTable[rec.tx];
-  } else if(rec.type==="other"){
+  } else if(rec.tx==="CKPT"){
    lastCheckpoint=rec.lsn;
   }
  }
- out.push("    active transactions: "+Object.keys(txTable).join(", "));
+ out.push("    active transactions: "+(Object.keys(txTable).join(", ")||"(none)"));
  out.push("    dirty pages: "+Object.keys(dirty).map(function(k){return k+"@"+dirty[k]}).join(", "));
  var redoStart=Infinity;
  for(var d in dirty)if(dirty[d]<redoStart)redoStart=dirty[d];
- if(!isFinite(redoStart))redoStart=lastCheckpoint;
+ if(!isFinite(redoStart))redoStart=lastCheckpoint||1;
  out.push("    redo start LSN: "+redoStart);
  out.push("");
  out.push("  Redo: apply all updates from the redo start point");
+ var db={};
+ for(var key in currentValues)db[key]=0;
+ for(var l2=0;l2<log.length;l2++){
+  var r2=log[l2];
+  if(r2.lsn>=redoStart && r2.type==="update")db[r2.item]=r2.after;
+ }
+ out.push("    after redo: "+JSON.stringify(db));
  out.push("    redo repeats history, including uncommitted transactions");
  out.push("");
  out.push("  Undo: roll back the losers");
- out.push("    walk back through the log and apply the before images");
- out.push("    write a CLR for each undo");
+ var losers=Object.keys(txTable);
+ out.push("    losers: "+(losers.join(", ")||"(none)"));
+ for(var l3=log.length-1;l3>=0;l3--){
+  var r3=log[l3];
+  if(r3.type==="update" && losers.indexOf(r3.tx)>=0){
+   db[r3.item]=r3.before;
+  }
+ }
+ out.push("    after undo: "+JSON.stringify(db));
  out.push("");
  out.push("Checkpoints");
  out.push("  fuzzy checkpoint: record the state without flushing all pages");
@@ -1350,7 +1288,7 @@ function demoRecoveryDurability(text){
  out.push("  synchronous commit: flush the log on commit");
  out.push("  asynchronous commit: do not flush, risk of data loss");
  out.push("  group commit: batch several commits into one flush");
- return {encoded:out.join("\n"),decoded:"The log is the source of truth. WAL writes the log before the data page. ARIES recovery runs analysis, redo and undo. Redo repeats history; undo rolls back the losers. Checkpoints bound the recovery time."};
+ return {encoded:out.join("\n"),decoded:"The log is the source of truth. WAL writes the log before the data page. ARIES recovery runs analysis, redo and undo. Redo repeats history; undo rolls back the losers using the before images. Checkpoints bound the recovery time."};
 }
 
 function demoStorageEngines(text){
@@ -1361,8 +1299,8 @@ function demoStorageEngines(text){
  for(var i=0;i<rows.length;i++){
   var r=rows[i];
   if(r.length>=3 && !isNaN(Number(r[0]))){numRecords=Number(r[0]); valueSize=Number(r[1]); bits=Number(r[2])}
-  if(r.length===1 && (r[0]==="leveled"||r[0]==="tiered"))strategy=r[0];
-  if(r.length===1 && !isNaN(Number(r[0])))fpRate=Number(r[0]);
+  else if(r.length===1 && (r[0]==="leveled"||r[0]==="tiered"))strategy=r[0];
+  else if(r.length===1 && !isNaN(Number(r[0])))fpRate=Number(r[0]);
  }
  out.push("LSM tree");
  out.push("  records: "+numRecords);
@@ -1376,9 +1314,9 @@ function demoStorageEngines(text){
   sizes.push(size);
   size*=10;
  }
- out.push("  "+padEnd("level",8)+padEnd("size (bytes)",14)+"files");
+ out.push("  "+padEnd("level",8)+padEnd("size (bytes)",16)+"files");
  for(var l2=0;l2<sizes.length;l2++){
-  out.push("  "+padEnd(l2,8)+padEnd(fmtNum(sizes[l2],0),14)+Math.ceil(sizes[l2]/(numRecords*valueSize)));
+  out.push("  "+padEnd(l2,8)+padEnd(fmtNum(sizes[l2],0),16)+Math.ceil(sizes[l2]/Math.max(1,numRecords*valueSize)));
  }
  out.push("");
  out.push("Compaction strategy: "+strategy);
@@ -1426,7 +1364,6 @@ function demoColumnarStorage(text){
   out.push("  values: "+values.join(" "));
   var isNum=values.every(function(v){return !isNaN(Number(v))});
   if(!isNum){
-   // dictionary
    var dict=values.slice().sort().filter(function(v,i,a){return i===0||v!==a[i-1]});
    var codes=values.map(function(v){return dict.indexOf(v)});
    var bits=Math.max(1, Math.ceil(Math.log2(Math.max(dict.length,2))));
@@ -1437,17 +1374,14 @@ function demoColumnarStorage(text){
    out.push("  encoded bytes: "+Math.ceil(codes.length*bits/8));
   } else {
    var nums=values.map(Number);
-   // RLE
    var runs=[];
    for(var i=0;i<nums.length;i++){
     if(runs.length && runs[runs.length-1][0]===nums[i])runs[runs.length-1][1]++;
     else runs.push([nums[i],1]);
    }
    out.push("  RLE: "+runs.map(function(r){return r[0]+"x"+r[1]}).join(" "));
-   // Delta
    var deltas=[nums[0]].concat(nums.slice(1).map(function(v,i){return v-nums[i]}));
    out.push("  delta: "+deltas.join(" "));
-   // FOR
    var ref=Math.min.apply(null,nums);
    var offsets=nums.map(function(v){return v-ref});
    var fbits=Math.max(1, Math.ceil(Math.log2(Math.max.apply(null,offsets)+1)));
@@ -1488,22 +1422,16 @@ function demoPartitioningFault(text){
  }
  var names=[];
  for(var n=0;n<nodes;n++)names.push("N"+(n+1));
- // Build ring
- function md5ish(x){
-  var h=0;
-  for(var i=0;i<x.length;i++)h=(Math.imul(h,31)+x.charCodeAt(i))>>>0;
-  return h;
- }
  var ring=[];
  for(var i2=0;i2<names.length;i2++){
   for(var v=0;v<vnodes;v++){
-   ring.push({pos:md5ish(names[i2]+":"+v), node:names[i2]});
+   ring.push({pos:hash32(names[i2]+":"+v), node:names[i2]});
   }
  }
  ring.sort(function(a,b){return a.pos-b.pos});
  var positions=ring.map(function(r){return r.pos});
  function owner(key){
-  var pos=md5ish(String(key));
+  var pos=hash32(String(key));
   var lo=0, hi=positions.length;
   while(lo<hi){var mid=(lo+hi)>>1; if(positions[mid]<pos)lo=mid+1; else hi=mid}
   return ring[lo%ring.length].node;
@@ -1516,7 +1444,6 @@ function demoPartitioningFault(text){
  out.push("  owner of key 2: "+owner(2));
  out.push("  owner of key 3: "+owner(3));
  out.push("");
- // Load distribution
  var load={};
  for(var k=0;k<keys;k++){
   var o=owner(k);
@@ -1526,7 +1453,7 @@ function demoPartitioningFault(text){
  var ideal=keys/nodes;
  for(var n2=0;n2<names.length;n2++){
   var c=load[names[n2]]||0;
-  out.push("  "+padEnd(names[n2],6)+padEnd(c,8)+"ideal "+fmtNum(ideal,0)+"  deviation "+fmtNum(100*(c-ideal)/ideal,1)+"%");
+  out.push("  "+padEnd(names[n2],6)+padEnd(c,8)+"ideal "+fmtNum(ideal,0)+"  deviation "+fmtNum(100*(c-ideal)/Math.max(ideal,1),1)+"%");
  }
  out.push("");
  out.push("Replication");
@@ -1553,6 +1480,29 @@ function demoPartitioningFault(text){
  return {encoded:out.join("\n"),decoded:"Consistent hashing places each node and each key on a ring. The key is owned by the first node clockwise. Adding a node moves only the keys in its range. Virtual nodes improve the load balance. Replication and erasure coding provide fault tolerance; erasure coding reduces storage overhead at the cost of CPU and network on recovery."};
 }
 
+function hllEstimate(values, bits){
+ bits=bits||10;
+ var m=1<<bits;
+ var regs=new Array(m);
+ for(var i=0;i<m;i++)regs[i]=0;
+ for(var i2=0;i2<values.length;i2++){
+  var h=hash32(String(values[i2]));
+  var idx=h>>>(32-bits);
+  var rest=h&((1<<(32-bits))-1);
+  var rank=Math.clz32(rest)-bits+1;
+  if(rank<1)rank=1;
+  if(rank>regs[idx])regs[idx]=rank;
+ }
+ var alpha=0.7213/(1+1.079/m);
+ var sum=0;
+ for(var j=0;j<m;j++)sum+=Math.pow(2,-regs[j]);
+ var raw=alpha*m*m/sum;
+ var zeros=0;
+ for(var k=0;k<m;k++)if(regs[k]===0)zeros++;
+ if(raw<=2.5*m && zeros>0)return m*Math.log(m/Math.max(zeros,1));
+ return raw;
+}
+
 function demoDistributedQueries(text){
  var rows=parseRows(text);
  var out=[];
@@ -1562,10 +1512,7 @@ function demoDistributedQueries(text){
   var r=rows[i];
   if(r[0]==="nodes"){nodes=Number(r[1])||nodes; continue}
   if(r.length>=3){
-   var strat=r[0];
-   var small=Number(r[1])||0;
-   var big=Number(r[2])||0;
-   cases.push({strategy:strat, small:small, big:big});
+   cases.push({strategy:r[0], small:Number(r[1])||0, big:Number(r[2])||0});
   }
  }
  if(!cases.length){
@@ -1608,6 +1555,19 @@ function demoDistributedQueries(text){
  out.push("  AMS: frequency moments");
  out.push("  all are mergeable across nodes");
  out.push("");
+ var sampleValues=[];
+ var rnd=12345;
+ function prng(){rnd=(Math.imul(rnd,1103515245)+12345)&0x7fffffff; return rnd}
+ for(var sv=0;sv<5000;sv++)sampleValues.push(prng()%200000);
+ var exactDistinct={};
+ for(var sd=0;sd<sampleValues.length;sd++)exactDistinct[sampleValues[sd]]=true;
+ var exactCount=Object.keys(exactDistinct).length;
+ var approxCount=Math.round(hllEstimate(sampleValues, 10));
+ out.push("HyperLogLog demo");
+ out.push("  sample of "+sampleValues.length+" values in [0, 200000)");
+ out.push("  exact distinct: "+exactCount);
+ out.push("  HLL estimate:   "+approxCount+" (error "+fmtNum(100*(approxCount-exactCount)/Math.max(exactCount,1),1)+"%)");
+ out.push("");
  out.push("Materialized views");
  out.push("  precompute the result of a query and store it");
  out.push("  refresh on commit, on demand or periodically");
@@ -1621,7 +1581,7 @@ function demoDistributedQueries(text){
  out.push("");
  out.push("The shuffle is the main bottleneck.");
  out.push("Minimizing data movement is the primary optimization.");
- return {encoded:out.join("\n"),decoded:"A broadcast join sends the small relation to every node. A shuffle join hashes both relations and moves rows by key. A co-located join needs no data movement. Aggregation uses partial and final steps. AQP answers queries on a sample, and sketches give approximate answers that merge across nodes."};
+ return {encoded:out.join("\n"),decoded:"A broadcast join sends the small relation to every node. A shuffle join hashes both relations and moves rows by key. A co-located join needs no data movement. Aggregation uses partial and final steps. AQP answers queries on a sample, and sketches like HyperLogLog give approximate answers that merge across nodes."};
 }
 
 /* ============================================================
@@ -2041,4 +2001,6 @@ function init(){
  }
 }
 init();
-</script></body></html>
+</script>
+</body>
+</html>
